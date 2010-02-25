@@ -436,6 +436,37 @@ This method returns a number from 0-15, extracted from the high nybble
 of the L</frequency_band_and_transmission_type>, and encoded the same
 way. This datum encodes the frequency band being used.
 
+=head2 frequency_band_and_transmission_type
+
+ printf "The frequency band and transmission type are 0x%02x\n",
+     $utdf->frequency_band_and_transmission_type();
+
+This method returns the frequency band and transmission type. The most
+significant nybble encodes the frequency (in hexadecimal) as follows:
+
+  0 - unspecified
+  1 - VHF
+  2 - UHF
+  3 - S-band
+  4 - C-band
+  5 - X-band
+  6 - Ku-band
+  7 - visible
+  8 - S-band uplink/Ku-band downlink
+  9-F - unused
+
+The least significant nybble encodes the transmission type (in
+hexadecimal) as follows:
+
+  0 - test
+  1 - unused
+  2 - simulated
+  3 - resubmit
+  4 - real time (normal setting)
+  5 - playback
+
+This information comes from byte 52 of the record.
+
 =head2 front
 
  printf "The front 3 bytes are 0x%06x\n", $utdf->front();
@@ -553,6 +584,14 @@ includes transponder latency in the satellite, but not latency at the
 ground station.
 
 This information comes from bytes 27-32 of the record.
+
+=head2 range_rate
+
+ print 'Range rate ', $utdf->range_rate(), " km/second\n";
+
+This method returns the range rate, or velocity in recession.
+
+This is calculated from the Doppler shift.
 
 =head2 raw_record
 
@@ -680,6 +719,14 @@ This information comes from bytes 53-54 of the record.
 This method returns the tracking mode. The data come from bits 2-3 of
 the L</mode> field, and the encoding is documented there.
 
+=head2 transmission_type
+
+ print 'The transmission type is ', $utdf->transmission_type(), "\n";
+
+This method returns the transmission type. This information comes from
+the low nybble of the L</frequency_code_and_transmission_type>, and the
+encoding is documented there.
+
 =head2 transmit_antenna_padid
 
  print 'The transmit antenna PADID is ',
@@ -688,37 +735,6 @@ the L</mode> field, and the encoding is documented there.
 This method returns the transmit antenna PADID.
 
 This information comes from byte 46 of the record.
-
-=head2 frequency_band_and_transmission_type
-
- printf "The frequency band and transmission type are 0x%02x\n",
-     $utdf->frequency_band_and_transmission_type();
-
-This method returns the transmission type. The most significant nybble
-encodes the frequency (in hexadecimal) as follows:
-
-  0 - unspecified
-  1 - VHF
-  2 - UHF
-  3 - S-band
-  4 - C-band
-  5 - X-band
-  6 - Ku-band
-  7 - visible
-  8 - S-band uplink/Ku-band downlink
-  9-F - unused
-
-The least significant nybble encodes the transmission type (in
-hexadecimal) as follows:
-
-  0 - test
-  1 - unused
-  2 - simulated
-  3 - resubmit
-  4 - real time (normal setting)
-  5 - playback
-
-This information comes from byte 52 of the record.
 
 =head2 transmit_antenna_type
 
