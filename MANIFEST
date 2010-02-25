@@ -16,3 +16,4 @@ xt/perlcriticrc
 xt/pod.t
 xt/pod_coverage.t
 xt/pod_spelling.t
+META.yml
