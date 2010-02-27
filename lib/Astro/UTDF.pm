@@ -17,8 +17,7 @@ our $VERSION = '0.000_01';
 sub azimuth {
     my ( $self ) = @_;
     exists $self->{_azimuth} and return $self->{azimuth};
-    return ( $self->{_azimuth} = $self->is_angle_valid() ?
-	$self->{azimuth} * TWO_PI : undef );
+    return ( $self->{_azimuth} = $self->{azimuth} * TWO_PI );
 }
 
 {
@@ -94,17 +93,13 @@ sub doppler_count {
     my ( $self ) = @_;
     exists $self->{_doppler_count} and return $self->{_doppler_count};
     return ( $self->{_doppler_count} =
-	$self->is_doppler_valid() ? (
-	    $self->{doppler_count_hi} * 65536 + $self->{doppler_count_lo} ) :
-	    undef
+	    $self->{doppler_count_hi} * 65536 + $self->{doppler_count_lo}
     );
 }
 
 sub elevation {
     my ( $self ) = @_;
     exists $self->{_elevation} and return $self->{_elevation};
-    $self->is_angle_valid()
-	or return ( $self->{_elevation} = undef );
     my $elev = $self->{elevation} * TWO_PI;
     $elev >= PI and $elev -= TWO_PI;
     return ( $self->{_elevation} = $elev );
@@ -142,10 +137,8 @@ sub range_delay {
     my ( $self ) = @_;
     exists $self->{_range_delay} and return $self->{_range_delay};
     return ( $self->{_range_delay} =
-	$self->is_range_valid() ? (
 	    ( $self->{range_delay_hi} * 65536 + $self->{range_delay_lo}
-		) / 256 ) :
-	    undef
+		) / 256
     );
 }
 
@@ -184,8 +177,7 @@ sub slurp {
 	    } } = unpack UTDF_TEMPLATE, $buffer;
 	$utdf{raw_record} = $buffer;
 	my $obj = bless \%utdf, $class;
-	if ( @rslt && $obj->is_doppler_valid() &&
-	    $rslt[-1]->is_doppler_valid() ) {
+	if ( @rslt ) {
 	    my $count = $obj->doppler_count() - $rslt[-1]->doppler_count();
 	    $count < 0 and $count += 2 << 48;
 	    my $deltat = $obj->measurement_time() -
@@ -344,9 +336,9 @@ This information comes from bytes 39-40 of the record.
 
  print 'Azimuth is ', $utdf->azimuth(), " radians\n";
 
-This method returns the value of the antenna azimuth in radians.  If
-this datum is invalid as determined by bit 1 of the L</data_validity>
-attribute, C<undef> will be returned.
+This method returns the value of the antenna azimuth in radians.
+B<Note> that this is returned even if L</is_angle_valid> (bit 2 (from 0)
+of the L</data_validity> attribute) is false.
 
 This information comes from bytes 19-22 of the record.
 
@@ -395,8 +387,8 @@ the description of the given method's output.
  print 'Doppler count is ', $utdf->doppler_count(), "\n";
 
 This method returns the accumulated doppler count for the observation.
-If this datum is invalid as determined by bit 1 of the L</data_validity>
-attribute, C<undef> will be returned.
+B<Note> that this is returned even if L</is_doppler_valid> (bit 1 (from
+0) of the L</data_validity> attribute) is false.
 
 This information comes from bytes 33-38 of the record.
 
@@ -413,17 +405,17 @@ divided by the difference between the observation times of this record
 and the previous record. Accordingly, this information is not available
 for the first record in the file.
 
-If this datum is invalid, either because this is the first record of the
-file or as determined by bit 1 of the L</data_validity> attribute,
-C<undef> will be returned.
+B<Note> that this is returned even if L</is_doppler_valid> (bit 1 (from
+0) of the L</data_validity> attribute) of the two records involved is
+false.
 
 =head2 elevation
 
  print 'Elevation is ', $utdf->elevation(), " radians\n";
 
-This method returns the elevation angle of the antenna, in radians. If
-this datum is invalid as determined by bit 1 of the L</data_validity>
-attribute, C<undef> will be returned.
+This method returns the elevation angle of the antenna, in radians.
+B<Note> that this is returned even if L</is_angle_valid> (bit 2 (from 0)
+of the L</data_validity> attribute) is false.
 
 This information comes from bytes 19-22 of the record.
 
@@ -577,11 +569,11 @@ This information comes from bytes 49-50 of the record.
 
  print 'Range delay ', $utdf->range_delay(), " nanoseconds\n";
 
-If bit 0 of the L</data_validity> mask is set, this method returns the
-range delay (tracker to spacecraft to tracker) in nanoseconds. Otherwise
-it returns C<undef>. Note that according to the specification this
-includes transponder latency in the satellite, but not latency at the
-ground station.
+This method returns the range delay (tracker to spacecraft to tracker)
+in nanoseconds.  B<Note> that this is returned even if
+L</is_range_valid> (bit 0 (from 0) of the L</data_validity> attribute)
+is false.  According to the specification this includes transponder
+latency in the satellite, but not latency at the ground station.
 
 This information comes from bytes 27-32 of the record.
 
