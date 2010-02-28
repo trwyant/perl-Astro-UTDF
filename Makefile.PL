@@ -9,6 +9,7 @@ my %args = (
     NAME => 'Astro::UTDF',
     VERSION_FROM => 'lib/Astro/UTDF.pm',
     PREREQ_PM => {
+	'Params::Util'	=> 0.25,
     },
     PL_FILES => {},	# Prevent old MakeMaker from running Build.PL
     'dist' => {COMPRESS => 'gzip', SUFFIX => 'gz'},
