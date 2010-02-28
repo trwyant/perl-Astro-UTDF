@@ -89,11 +89,6 @@ sub azimuth {
     }
 }
 
-sub doppler_count {
-    my ( $self ) = @_;
-    return $self->{doppler_count_hi} * 65536 + $self->{doppler_count_lo};
-}
-
 sub elevation {
     my ( $self ) = @_;
     my $elev = $self->{elevation} * TWO_PI;
@@ -154,12 +149,6 @@ sub range_rate {
     }
 }
 
-sub range_delay {
-    my ( $self ) = @_;
-    return ( $self->{range_delay_hi} * 65536 + $self->{range_delay_lo}
-		) / 256;
-}
-
 use constant UTDF_TEMPLATE => 'a3A2CnnNNNNNnNnnNCCCCnCCna18a3';
 
 sub slurp {
@@ -193,9 +182,14 @@ sub slurp {
 	    tdrss_only
 	    rear
 	    } } = unpack UTDF_TEMPLATE, $buffer;
+	$utdf{range_delay} = ( delete( $utdf{range_delay_hi} ) * 65536 +
+	    delete $utdf{range_delay_lo} ) / 256;
+	$utdf{doppler_count} = delete( $utdf{doppler_count_hi} ) * 65536 +
+	    delete $utdf{doppler_count_lo};
 	$utdf{raw_record} = $buffer;
 	$utdf{prior_record} = @rslt ? $rslt[-1] : undef;
 	my $obj = bless \%utdf, $class;
+
 	if ( @rslt ) {
 	    my $count = $obj->doppler_count() - $rslt[-1]->doppler_count();
 	    $count < 0 and $count += 2 << 48;
@@ -252,6 +246,8 @@ foreach my $accessor ( qw{
     tdrss_only
     rear
     raw_record
+    range_delay
+    doppler_count
     doppler_shift
 } ) {
     no strict qw{ refs };
