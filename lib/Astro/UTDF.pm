@@ -5,6 +5,7 @@ use warnings;
 
 use Carp;
 use IO::File ();
+use Params::Util;
 use Scalar::Util qw{ openhandle };
 use Time::Local;
 
@@ -16,8 +17,7 @@ our $VERSION = '0.000_01';
 
 sub azimuth {
     my ( $self ) = @_;
-    exists $self->{_azimuth} and return $self->{azimuth};
-    return ( $self->{_azimuth} = $self->{azimuth} * TWO_PI );
+    return $self->{azimuth} * TWO_PI;
 }
 
 {
@@ -91,18 +91,19 @@ sub azimuth {
 
 sub doppler_count {
     my ( $self ) = @_;
-    exists $self->{_doppler_count} and return $self->{_doppler_count};
-    return ( $self->{_doppler_count} =
-	    $self->{doppler_count_hi} * 65536 + $self->{doppler_count_lo}
-    );
+    return $self->{doppler_count_hi} * 65536 + $self->{doppler_count_lo};
 }
 
 sub elevation {
     my ( $self ) = @_;
-    exists $self->{_elevation} and return $self->{_elevation};
     my $elev = $self->{elevation} * TWO_PI;
     $elev >= PI and $elev -= TWO_PI;
-    return ( $self->{_elevation} = $elev );
+    return $elev;
+}
+
+sub frequency_band {
+    my ( $self ) = @_;
+    return ( $self->{frequency_band_and_transmission_type} & 0xF0 ) >> 4;
 }
 
 sub is_angle_valid {
@@ -120,26 +121,43 @@ sub is_range_valid {
     return ( $self->{data_validity} & 0x1 ) ? 1 : 0;
 }
 
+sub measurement_time {
+    my ( $self ) = @_;
+    my $yr = $self->year();
+    $yr < 70 and $yr += 100;
+    return timegm( 0, 0, 0, 1, 0, $yr ) + $self->seconds_of_year() +
+	$self->microseconds_of_year() / 1_000_000;
+}
+
+sub prior_record {
+    my ( $self, @args ) = @_;
+    if ( @args ) {
+	my $prior = shift @args;
+	defined $prior and not _INSTANCE( $prior, __PACKAGE__ )
+	    and croak 'Prior record must be undef or a ', __PACKAGE__;
+	$self->{prior_record} = $prior;
+	return $self;
+    } else {
+	return $self->{prior_record};
+    }
+}
+
 sub range_rate {
     my ( $self ) = @_;
-    exists $self->{_range_rate} and return $self->{_range_rate};
     if ( defined ( my $shift = $self->doppler_shift() ) ) {
-	return ( $self->{_range_rate} =
+	return (
 	    - SPEED_OF_LIGHT / ( 2 * $self->transmit_frequency() *
 		$self->_factor_K() ) * $shift
 	);
     } else {
-	return ( $self->{_range_rate} = undef );
+	return undef;
     }
 }
 
 sub range_delay {
     my ( $self ) = @_;
-    exists $self->{_range_delay} and return $self->{_range_delay};
-    return ( $self->{_range_delay} =
-	    ( $self->{range_delay_hi} * 65536 + $self->{range_delay_lo}
-		) / 256
-    );
+    return ( $self->{range_delay_hi} * 65536 + $self->{range_delay_lo}
+		) / 256;
 }
 
 use constant UTDF_TEMPLATE => 'a3A2CnnNNNNNnNnnNCCCCnCCna18a3';
@@ -176,6 +194,7 @@ sub slurp {
 	    rear
 	    } } = unpack UTDF_TEMPLATE, $buffer;
 	$utdf{raw_record} = $buffer;
+	$utdf{prior_record} = @rslt ? $rslt[-1] : undef;
 	my $obj = bless \%utdf, $class;
 	if ( @rslt ) {
 	    my $count = $obj->doppler_count() - $rslt[-1]->doppler_count();
@@ -194,30 +213,22 @@ sub slurp {
 
 sub tracker_type {
     my ( $self ) = @_;
-    exists $self->{_tracker_type} and return $self->{_tracker_type};
-    return ( $self->{_tracker_type} =
-	( $self->{tracker_type_and_data_rate} & 0xF000 ) >> 12 );
+    return ( $self->{tracker_type_and_data_rate} & 0xF000 ) >> 12;
 }
 
 sub tracking_mode {
     my ( $self ) = @_;
-    exists $self->{_tracking_mode} and return $self->{_tracking_mode};
-    return ( $self->{_tracking_mode} = ( $self->{mode} & 0x000C ) >> 2 );
+    return ( $self->{mode} & 0x000C ) >> 2;
 }
 
 sub transmission_type {
     my ( $self ) = @_;
-    exists $self->{_transmission_type} and return $self->{_transmission_type};
-    return ( $self->{_transmission_type} =
-	$self->{frequency_band_and_transmission_type} & 0x0F );
+    return $self->{frequency_band_and_transmission_type} & 0x0F;
 }
 
 sub transmit_frequency {
     my ( $self ) = @_;
-    exists $self->{_transmit_frequency}
-	and return $self->{_transmit_frequency};
-    return ( $self->{_transmit_frequency} =
-	$self->{transmit_frequency} * 10 );
+    return $self->{transmit_frequency} * 10;
 }
 
 # Generate all the canonical accessors. If there exists a method named
@@ -242,20 +253,10 @@ foreach my $accessor ( qw{
     rear
     raw_record
     doppler_shift
-
-    frequency_band
-    measurement_time
 } ) {
     my $compute = "_$accessor";
     no strict qw{ refs };
-    *$accessor = __PACKAGE__->can( $compute ) ?
-    sub {
-	my ( $self, @args ) = @_;
-	exists $self->{_cache}{$accessor}
-	    and return $self->{_cache}{$accessor};
-	return ( $self->{_cache}{$accessor} = $self->$compute( @args ) );
-    } :
-    sub {
+    *$accessor = sub {
 	return $_[0]->{$accessor};
     };
 }
@@ -276,25 +277,6 @@ sub _factor_M {
 sub _factor_K {
     my ( $self ) = @_;
     return $self->transmit_frequency() >= 2_000_000_000 ? 240 / 221 : 1;
-}
-
-# Return the frequency band code, which is the high nybble of the
-# frequency_band_and_transmission_type field.
-
-sub _frequency_band {
-    my ( $self ) = @_;
-    return ( $self->{frequency_band_and_transmission_type} & 0xF0 ) >> 4;
-}
-
-# Return the measurement time as a Perl time in seconds since the Perl
-# epoch.
-
-sub _measurement_time {
-    my ( $self ) = @_;
-    my $yr = $self->year();
-    $yr < 70 and $yr += 100;
-    return timegm( 0, 0, 0, 1, 0, $yr ) + $self->seconds_of_year() +
-	$self->microseconds_of_year() / 1_000_000;
 }
 
 1;
@@ -564,6 +546,20 @@ follows, 0 being the least-significant bit:
 =back
 
 This information comes from bytes 49-50 of the record.
+
+=head2 prior_record
+
+ my $prior = $utdf->prior_record();
+ $utdf->prior_record( $another_record );
+
+When called without any arguments, this method is an accessor which
+returns the prior UTDF record. This is the record used to compute
+L</doppler_shift> and from that L</range_rate>.
+
+When called with an argument, this method is a mutator which sets the
+prior UTDF record. The argument must be an Astro::UTDF object or
+C<undef>. When called as an accessor, this method returns its object, so
+that calls can be chained.
 
 =head2 range_delay
 

@@ -5,7 +5,7 @@ use warnings;
 
 use Test::More 0.40;
 
-plan ( tests => 38 );
+plan ( tests => 39 );
 
 require_ok('Astro::UTDF');
 
@@ -25,6 +25,7 @@ i_can_ok( 'is_range_valid' );
 i_can_ok( 'measurement_time' );
 i_can_ok( 'microseconds_of_year' );
 i_can_ok( 'mode' );
+i_can_ok( 'prior_record' );
 i_can_ok( 'range_delay' );
 i_can_ok( 'range_rate' );
 i_can_ok( 'raw_record' );
