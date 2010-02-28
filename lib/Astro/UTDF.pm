@@ -190,19 +190,24 @@ sub slurp {
 	$utdf{prior_record} = @rslt ? $rslt[-1] : undef;
 	my $obj = bless \%utdf, $class;
 
-	if ( @rslt ) {
-	    my $count = $obj->doppler_count() - $rslt[-1]->doppler_count();
-	    $count < 0 and $count += 2 << 48;
-	    my $deltat = $obj->measurement_time() -
-		$rslt[-1]->measurement_time();
-	    $utdf{doppler_shift} = ( $count / $deltat - 240_000_000 ) /
-		$obj->_factor_M();
-	}
-
 	push @rslt, $obj;
     }
     close $fh;
     return @rslt;
+}
+
+sub doppler_shift {
+    my ( $self ) = @_;
+    defined( my $prior = $self->prior_record() )
+	or return undef;	## no critic (ProhibitExplicitReturnUndef)
+    my $count = $self->doppler_count() - $prior->doppler_count();
+    my $deltat = $self->measurement_time() - $prior->measurement_time();
+    if ( $deltat < 0 ) {
+	$deltat = - $deltat;
+	$count = - $count;
+    }
+    $count < 0 and $count += 2 << 48;
+    return ( $count / $deltat - 240_000_000 ) / $self->_factor_M();
 }
 
 sub tracker_type {
@@ -225,11 +230,8 @@ sub transmit_frequency {
     return $self->{transmit_frequency} * 10;
 }
 
-# Generate all the canonical accessors. If there exists a method named
-# after the attribute (with an underscore prepended) we generate an
-# accessor that calls the method and caches the result, returning the
-# cached value for subsequent calls. If not, we just return the named
-# attribute, which is assumed to already exist.
+# Generate all the simple accessors. These just return the value of
+# the correspondingly-named attribute, which is assumed to exist.
 
 foreach my $accessor ( qw{
     front router year sic vid seconds_of_year
@@ -248,7 +250,6 @@ foreach my $accessor ( qw{
     raw_record
     range_delay
     doppler_count
-    doppler_shift
 } ) {
     no strict qw{ refs };
     *$accessor = sub {
