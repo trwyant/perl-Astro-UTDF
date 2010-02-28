@@ -150,7 +150,7 @@ sub range_rate {
 		$self->_factor_K() ) * $shift
 	);
     } else {
-	return undef;
+	return undef;	## no critic (ProhibitExplicitReturnUndef)
     }
 }
 
@@ -254,7 +254,6 @@ foreach my $accessor ( qw{
     raw_record
     doppler_shift
 } ) {
-    my $compute = "_$accessor";
     no strict qw{ refs };
     *$accessor = sub {
 	return $_[0]->{$accessor};
