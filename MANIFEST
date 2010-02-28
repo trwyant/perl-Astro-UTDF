@@ -9,6 +9,8 @@ Makefile.PL
 MANIFEST			This list of files
 README
 t/basic.t
+t/doppler.utdf
+t/utdf.t
 xt/critic.t
 xt/executable.t
 xt/manifest.t
