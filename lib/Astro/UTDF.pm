@@ -5,19 +5,51 @@ use warnings;
 
 use Carp;
 use IO::File ();
-use Params::Util;
+use Params::Util 0.25 qw{ _INSTANCE };
 use Scalar::Util qw{ openhandle };
 use Time::Local;
 
 use constant PI => atan2( 0, -1 );
 use constant TWO_PI => 2 * PI;
-use constant SPEED_OF_LIGHT => 299792.458;	# Km/sec, per NIST
+use constant SPEED_OF_LIGHT => 299792.458;	# Km/sec, per U.S. NIST
 
 our $VERSION = '0.000_01';
 
+# Perl::Critic annotation required because of the assignment to @_
+# before the co-routine call to clone().
+sub new {	## no critic (RequireArgUnpacking)
+    my ( $class, @args ) = @_;
+    ref $class and $class = ref $class;
+    @_ = ( $class, @args );
+    goto &clone;
+}
+
 sub azimuth {
-    my ( $self ) = @_;
+    my ( $self, @args ) = @_;
+    @args and croak "azimuth() may not be used as a mutator";
     return $self->{azimuth} * TWO_PI;
+}
+
+sub clone {
+    my ( $self, @args ) = @_;
+    my ( $class, $clone );
+    if ( $class = ref $self ) {
+	$clone = {};
+	while ( my ( $name, $value ) = each %{ $self } ) {
+	    $clone->{$name} = $value;
+	}
+    } else {
+	$clone = { _static() };
+	$class = $self;
+    }
+    bless $clone, $class;
+    while ( @args ) {
+	my ( $name, $value ) = splice @args, 0, 2;
+	my $code = $clone->can( $name )
+	    or croak "Method $name() not found";
+	$code->( $clone, $value );
+    }
+    return $clone;
 }
 
 {
@@ -89,35 +121,76 @@ sub azimuth {
     }
 }
 
+sub doppler_count {
+    my ( $self, @args ) = @_;
+    @args and croak "doppler_count() may not be used as a mutator";
+    return $self->{doppler_count_hi} * 65536 + $self->{doppler_count_lo};
+}
+
+sub doppler_shift {
+    my ( $self, @args ) = @_;
+    @args and croak "doppler_shift() may not be used as a mutator";
+    # Note that this can never be a mutator, because it uses data from
+    # more than one record.
+    defined( my $prior = $self->prior_record() )
+	# If I simply returned as PBP would have me do, this method
+	# would behave differently in list context depending on whether
+	# prior_record() returned a defined value.
+	or return undef;	## no critic (ProhibitExplicitReturnUndef)
+    my $count = $self->doppler_count() - $prior->doppler_count();
+    my $deltat = $self->measurement_time() - $prior->measurement_time();
+    if ( $deltat < 0 ) {
+	$deltat = - $deltat;
+	$count = - $count;
+    }
+    $count < 0 and $count += 2 << 48;
+    return ( $count / $deltat - 240_000_000 ) / $self->_factor_M();
+}
+
 sub elevation {
-    my ( $self ) = @_;
+    my ( $self, @args ) = @_;
+    @args and croak "elevation() may not be used as a mutator";
     my $elev = $self->{elevation} * TWO_PI;
     $elev >= PI and $elev -= TWO_PI;
     return $elev;
 }
 
 sub frequency_band {
-    my ( $self ) = @_;
+    my ( $self, @args ) = @_;
+    @args and croak "frequency_band() may not be used as a mutator";
     return ( $self->{frequency_band_and_transmission_type} & 0xF0 ) >> 4;
 }
 
+sub hex_record {
+    my ( $self, @args ) = @_;
+    if ( @args ) {
+	return $self->raw_record( pack 'H*', $args[0] );
+    } else {
+	return unpack 'H*', $self->raw_record();
+    }
+}
+
 sub is_angle_valid {
-    my ( $self ) = @_;
+    my ( $self, @args ) = @_;
+    @args and croak "is_angle_valid() may not be used as a mutator";
     return ( $self->{data_validity} & 0x4 ) ? 1 : 0;
 }
 
 sub is_doppler_valid {
-    my ( $self ) = @_;
+    my ( $self, @args ) = @_;
+    @args and croak "is_doppler_valid() may not be used as a mutator";
     return ( $self->{data_validity} & 0x2 ) ? 1 : 0;
 }
 
 sub is_range_valid {
-    my ( $self ) = @_;
+    my ( $self, @args ) = @_;
+    @args and croak "is_range_valid() may not be used as a mutator";
     return ( $self->{data_validity} & 0x1 ) ? 1 : 0;
 }
 
 sub measurement_time {
-    my ( $self ) = @_;
+    my ( $self, @args ) = @_;
+    @args and croak "measurement_time() may not be used as a mutator";
     my $yr = $self->year();
     $yr < 70 and $yr += 100;
     return timegm( 0, 0, 0, 1, 0, $yr ) + $self->seconds_of_year() +
@@ -137,19 +210,78 @@ sub prior_record {
     }
 }
 
+sub range_delay {
+    my ( $self, @args ) = @_;
+    @args and croak "range_delay() may not be used as a mutator";
+    return ( $self->{range_delay_hi} * 65536 +
+	$self->{range_delay_lo} ) / 256;
+}
+
 sub range_rate {
-    my ( $self ) = @_;
+    my ( $self, @args ) = @_;
+    @args and croak "range_rate() may not be used as a mutator";
+    # Note that this can never be a mutator because it uses
+    # doppler_shift() (q.v.)
     if ( defined ( my $shift = $self->doppler_shift() ) ) {
 	return (
 	    - SPEED_OF_LIGHT / ( 2 * $self->transmit_frequency() *
 		$self->_factor_K() ) * $shift
 	);
     } else {
+	# If I simply returned as PBP would have me do, this method
+	# would behave differently in list context depending on whether
+	# doppler_shift() returned a defined value.
 	return undef;	## no critic (ProhibitExplicitReturnUndef)
     }
 }
 
-use constant UTDF_TEMPLATE => 'a3A2CnnNNNNNnNnnNCCCCnCCna18a3';
+{
+
+    my $utdf_template = 'a3A2CnnNNNNNnNnnNCCCCnCCna18a3';
+    my @utdf_fields = qw{
+	front router year sic vid seconds_of_year
+	microseconds_of_year azimuth elevation
+	range_delay_hi range_delay_lo
+	doppler_count_hi doppler_count_lo
+	agc
+	transmit_frequency
+	transmit_antenna_type
+	transmit_antenna_padid
+	receive_antenna_type
+	receive_antenna_padid
+	mode
+	data_validity
+	frequency_band_and_transmission_type
+	tracker_type_and_data_rate
+	tdrss_only
+	rear
+    };
+
+    sub raw_record {
+	my ( $self, @args ) = @_;
+	if ( @args ) {
+	    my $raw_record = shift @args;
+	    length $raw_record == 75
+		or croak "Invalid raw record: length not 75 bytes";
+	    @$self{ @utdf_fields } = unpack $utdf_template, $raw_record;
+	    return $self;
+	} else {
+	    return pack $utdf_template, @$self{ @utdf_fields };
+	}
+    }
+
+    my $static;
+    @$static{ @utdf_fields } = ( 0 ) x scalar @utdf_fields;
+    $static->{front} = pack 'H*', '0d0a01';
+    $static->{router} = ' ';
+    $static->{tdrss_only} = pack( 'H*', '00' ) x 18;
+    $static->{rear} = pack 'H*', '040f0f';
+    bless $static, __PACKAGE__;
+
+    sub _static {
+	return wantarray ? %{ $static } : $static;
+    }
+}
 
 sub slurp {
     my ( $class, $fh ) = @_;
@@ -164,69 +296,36 @@ sub slurp {
     my @rslt;
     my ( $buffer, $count );
     while ( $count = read $fh, $buffer, 75 ) {
-	my %utdf;
-	@utdf{ qw{ front router year sic vid seconds_of_year
-	    microseconds_of_year azimuth elevation
-	    range_delay_hi range_delay_lo
-	    doppler_count_hi doppler_count_lo
-	    agc
-	    transmit_frequency
-	    transmit_antenna_type
-	    transmit_antenna_padid
-	    receive_antenna_type
-	    receive_antenna_padid
-	    mode
-	    data_validity
-	    frequency_band_and_transmission_type
-	    tracker_type_and_data_rate
-	    tdrss_only
-	    rear
-	    } } = unpack UTDF_TEMPLATE, $buffer;
-	$utdf{range_delay} = ( delete( $utdf{range_delay_hi} ) * 65536 +
-	    delete $utdf{range_delay_lo} ) / 256;
-	$utdf{doppler_count} = delete( $utdf{doppler_count_hi} ) * 65536 +
-	    delete $utdf{doppler_count_lo};
-	$utdf{raw_record} = $buffer;
-	$utdf{prior_record} = @rslt ? $rslt[-1] : undef;
-	my $obj = bless \%utdf, $class;
-
-	push @rslt, $obj;
+	push @rslt, __PACKAGE__->new(
+	    raw_record => $buffer,
+	    prior_record => @rslt ? $rslt[-1] : undef
+	);
     }
     close $fh;
     return @rslt;
 }
 
-sub doppler_shift {
-    my ( $self ) = @_;
-    defined( my $prior = $self->prior_record() )
-	or return undef;	## no critic (ProhibitExplicitReturnUndef)
-    my $count = $self->doppler_count() - $prior->doppler_count();
-    my $deltat = $self->measurement_time() - $prior->measurement_time();
-    if ( $deltat < 0 ) {
-	$deltat = - $deltat;
-	$count = - $count;
-    }
-    $count < 0 and $count += 2 << 48;
-    return ( $count / $deltat - 240_000_000 ) / $self->_factor_M();
-}
-
 sub tracker_type {
-    my ( $self ) = @_;
+    my ( $self, @args ) = @_;
+    @args and croak "tracker_type() may not be used as a mutator";
     return ( $self->{tracker_type_and_data_rate} & 0xF000 ) >> 12;
 }
 
 sub tracking_mode {
-    my ( $self ) = @_;
+    my ( $self, @args ) = @_;
+    @args and croak "tracking_mode() may not be used as a mutator";
     return ( $self->{mode} & 0x000C ) >> 2;
 }
 
 sub transmission_type {
-    my ( $self ) = @_;
+    my ( $self, @args ) = @_;
+    @args and croak "transmission_type() may not be used as a mutator";
     return $self->{frequency_band_and_transmission_type} & 0x0F;
 }
 
 sub transmit_frequency {
-    my ( $self ) = @_;
+    my ( $self, @args ) = @_;
+    @args and croak "transmit_frequency() may not be used as a mutator";
     return $self->{transmit_frequency} * 10;
 }
 
@@ -247,12 +346,11 @@ foreach my $accessor ( qw{
     tracker_type_and_data_rate
     tdrss_only
     rear
-    raw_record
-    range_delay
-    doppler_count
 } ) {
     no strict qw{ refs };
     *$accessor = sub {
+	my ( $self, @args ) = @_;
+	@args and croak "$accessor() may not be used as a mutator";
 	return $_[0]->{$accessor};
     };
 }
@@ -295,12 +393,30 @@ Astro::UTDF - Represent Universal Tracking Data Format (UTDF) data
 
 This class represents a record from a Universal Tracking Data Format
 (UTDF) file. The UTDF file can be read using the
-L<< Astro::UTDF->slurp()|/slurp >> method, which is the only supported
-way to instantiate this class.
+L<< Astro::UTDF->slurp()|/slurp >> method, which returns a list of
+Astro::UTDF objects.
+
+Most of the following methods are accessors of some sort. Some of the
+accessors will also behave as mutators if you pass a new value as an
+argument. Validation is minimal to non-existent.
 
 =head1 METHODS
 
 This class supports the following public methods:
+
+=head2 new
+
+ my $utdf = Astro::UTDF->new( raw_record => $buffer );
+
+This method instantiates an Astro::UTDF object. You can pass name/value
+pairs, where the name is the name of a mutator and the value is the
+value to pass to it. If you pass no arguments, you get an object with
+all attributes initialized to 0, except:
+
+ front is initialized to its predefined value;
+ router is initialized to '  ';
+ tdrss_only is initialized to 18 null bytes;
+ rear is initialized to its predefined value.
 
 =head2 agc
 
@@ -319,6 +435,21 @@ B<Note> that this is returned even if L</is_angle_valid> (bit 2 (from 0)
 of the L</data_validity> attribute) is false.
 
 This information comes from bytes 19-22 of the record.
+
+=head2 clone
+
+ my $clone = $utdf->clone();
+
+This method returns a new object whose attributes are the same as those
+of the object cloned. Be aware that this means
+C<< $clone->prior_record() >> returns the same object as
+C<< $utdf->prior_record() >> until you change one of them.
+
+You can pass name/value pairs as arguments, in which case the names are
+the names of mutator methods, and the arguments are arguments to them.
+The mutators are called on the clone, not the original object.
+
+If you call this as a static method, it is equivalent to L<new()|/new>.
 
 =head2 data_validity
 
@@ -445,6 +576,17 @@ This method returns the constant field at the front of the record, which
 should always be 0x0d0a01.
 
 This information comes from bytes 1-3 of the record.
+
+=head2 hex_record
+
+ print "The hexified record is ", $utdf->hex_record(), "\n";
+ $utdf->hex_record('0d0a01 ... 040f0f' );
+
+When called without an argument, this method is an accessor, returning
+the L</raw_record> hexified by C<unpack 'H*'>.
+
+When called with an argument, this method is a mutator, which generates
+the raw record by C<pack 'H*'> and then passes that to L</raw_record>.
 
 =head2 is_angle_valid
 
@@ -580,8 +722,15 @@ This is calculated from the Doppler shift.
 =head2 raw_record
 
  print 'Raw record in hex: ', unpack( 'H*', $utdf->raw_record() ), "\n";
+ $utdf->raw_record( $buffer );
 
-This method returns the raw record as read from the file.
+When called without an argument, this method is an accessor for the raw
+UTDF record used to initialize the object. The returned datum will be 75
+bytes long, in binary.
+
+When called with an argument, this method is a mutator that sets the
+object's attributes from the given raw record. This record should be
+binary, 75 bytes long.
 
 =head2 rear
 
@@ -651,7 +800,8 @@ This information comes from bytes 7-8 of the record.
  my @data = Astro::UTDF->slurp( $file_name );
 
 This static method reads the given file, returning an array of
-Astro::UTDF objects.
+Astro::UTDF objects. The argument can also be a handle to an open file.
+The file will be put into C<binmode> and read to the end.
 
 =head2 tdrss_only
 
