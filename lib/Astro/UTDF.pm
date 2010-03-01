@@ -27,6 +27,9 @@ sub new {	## no critic (RequireArgUnpacking)
 sub azimuth {
     my ( $self, @args ) = @_;
     @args and croak "azimuth() may not be used as a mutator";
+    $self->enforce_validity()
+	and not $self->is_angle_valid()
+	and return undef;	## no critic (ProhibitExplicitReturnUndef)
     return $self->{azimuth} * TWO_PI;
 }
 
@@ -124,6 +127,9 @@ sub clone {
 sub doppler_count {
     my ( $self, @args ) = @_;
     @args and croak "doppler_count() may not be used as a mutator";
+    $self->enforce_validity()
+	and not $self->is_doppler_valid()
+	and return undef;	## no critic (ProhibitExplicitReturnUndef)
     return $self->{doppler_count_hi} * 65536 + $self->{doppler_count_lo};
 }
 
@@ -137,6 +143,10 @@ sub doppler_shift {
 	# would behave differently in list context depending on whether
 	# prior_record() returned a defined value.
 	or return undef;	## no critic (ProhibitExplicitReturnUndef)
+    $self->enforce_validity()
+	and not ( $self->is_doppler_valid() &&
+	    $prior->is_doppler_valid() )
+	and return undef;	## no critic (ProhibitExplicitReturnUndef)
     my $count = $self->doppler_count() - $prior->doppler_count();
     my $deltat = $self->measurement_time() - $prior->measurement_time();
     if ( $deltat < 0 ) {
@@ -150,9 +160,22 @@ sub doppler_shift {
 sub elevation {
     my ( $self, @args ) = @_;
     @args and croak "elevation() may not be used as a mutator";
+    $self->enforce_validity()
+	and not $self->is_angle_valid()
+	and return undef;	## no critic (ProhibitExplicitReturnUndef)
     my $elev = $self->{elevation} * TWO_PI;
     $elev >= PI and $elev -= TWO_PI;
     return $elev;
+}
+
+sub enforce_validity {
+    my ( $self, @args ) = @_;
+    if ( @args ) {
+	$self->{enforce_validity} = shift @args;
+	return $self;
+    } else {
+	return $self->{enforce_validity};
+    }
 }
 
 sub frequency_band {
@@ -213,6 +236,9 @@ sub prior_record {
 sub range_delay {
     my ( $self, @args ) = @_;
     @args and croak "range_delay() may not be used as a mutator";
+    $self->enforce_validity()
+	and not $self->is_range_valid()
+	and return undef;	## no critic (ProhibitExplicitReturnUndef)
     return ( $self->{range_delay_hi} * 65536 +
 	$self->{range_delay_lo} ) / 256;
 }
@@ -430,9 +456,10 @@ This information comes from bytes 39-40 of the record.
 
  print 'Azimuth is ', $utdf->azimuth(), " radians\n";
 
-This method returns the value of the antenna azimuth in radians.
-B<Note> that this is returned even if L</is_angle_valid> (bit 2 (from 0)
-of the L</data_validity> attribute) is false.
+This method returns the value of the antenna azimuth in radians.  If
+L</enforce_validity> is true, this method will return C<undef> if
+L</is_angle_valid> (bit 2 (from 0) of the L</data_validity> attribute)
+is false.
 
 This information comes from bytes 19-22 of the record.
 
@@ -496,8 +523,9 @@ the description of the given method's output.
  print 'Doppler count is ', $utdf->doppler_count(), "\n";
 
 This method returns the accumulated doppler count for the observation.
-B<Note> that this is returned even if L</is_doppler_valid> (bit 1 (from
-0) of the L</data_validity> attribute) is false.
+If L</enforce_validity> is true, this method will return C<undef>
+L</is_doppler_valid> (bit 1 (from 0) of the L</data_validity> attribute)
+is false.
 
 This information comes from bytes 33-38 of the record.
 
@@ -514,19 +542,41 @@ divided by the difference between the observation times of this record
 and the previous record. Accordingly, this information is not available
 for the first record in the file.
 
-B<Note> that this is returned even if L</is_doppler_valid> (bit 1 (from
-0) of the L</data_validity> attribute) of the two records involved is
-false.
+If L</enforce_validity> is true, this method will return C<undef> if
+L</is_doppler_valid> (bit 1 (from 0) of the L</data_validity> attribute)
+of either of the two records involved is false.
 
 =head2 elevation
 
  print 'Elevation is ', $utdf->elevation(), " radians\n";
 
-This method returns the elevation angle of the antenna, in radians.
-B<Note> that this is returned even if L</is_angle_valid> (bit 2 (from 0)
-of the L</data_validity> attribute) is false.
+This method returns the elevation angle of the antenna, in radians.  If
+L</enforce_validity> is true, this method will return C<undef> if
+L</is_angle_valid> (bit 2 (from 0) of the L</data_validity> attribute)
+is false.
 
 This information comes from bytes 19-22 of the record.
+
+=head2 enforce_validity
+
+ print "Validity is ", $utdf->enforce_validity() ?
+     " enforced\n" : " not enforced\n";
+ $utdf->enforce_validity( 1 );
+
+When called without an argument this method is an accessor, returning
+the current value of the enforce_validity attribute.
+
+When called with an argument this method is a mutator, setting the value
+of the enforce_validity attribute and returning the mutated object.
+
+The enforce_validity attribute is not part of the UTDF standard. If set
+true (in the Perl sense, meaning any value but C<undef>, C<''> or C<0>),
+those methods which return data having associated validity bits will
+return C<undef> if the relevant validity bit is not set. If false, those
+methods will ignore the validity bit and return whatever value the
+attribute has.
+
+This attribute defaults to C<undef> (that is, false).
 
 =head2 frequency_band
 
@@ -704,10 +754,13 @@ that calls can be chained.
  print 'Range delay ', $utdf->range_delay(), " nanoseconds\n";
 
 This method returns the range delay (tracker to spacecraft to tracker)
-in nanoseconds.  B<Note> that this is returned even if
-L</is_range_valid> (bit 0 (from 0) of the L</data_validity> attribute)
-is false.  According to the specification this includes transponder
-latency in the satellite, but not latency at the ground station.
+in nanoseconds.  If L</enforce_validity> is true, this method will
+return C<undef> if L</is_range_valid> (bit 0 (from 0) of the
+L</data_validity> attribute) is false.
+
+According to the specification the value returned by this method
+includes transponder latency in the satellite, but not latency at the
+ground station.
 
 This information comes from bytes 27-32 of the record.
 
@@ -717,7 +770,8 @@ This information comes from bytes 27-32 of the record.
 
 This method returns the range rate, or velocity in recession.
 
-This is calculated from the Doppler shift.
+This is calculated from the Doppler shift, and will be C<undef> if
+L</doppler_shift> returns C<undef>.
 
 =head2 raw_record
 
