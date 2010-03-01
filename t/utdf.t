@@ -71,6 +71,28 @@ returns( $utdf, transmit_frequency => 2048854000, 'transmit_frequency' );
 returns( $utdf, vid => 1, 'vid (Vehicle ID)' );
 returns( $utdf, year => 9, 'year' );
 
+SKIP: {
+
+    local $@;
+    my $clone;
+
+    ok( eval { $clone = $utdf->clone() }, 'Clone our object' )
+	or skip( "Failed to clone object", 6 );
+
+    ok( eval { $clone->enforce_validity( 1 ) }, 'Set enforce_validity' )
+	or skip( "Failed to set enforce_validity", 5 );
+
+    ok( eval { $clone->enforce_validity() },
+	'See if enforce_validity is set' )
+	or skip( "Failed to set enforce_validity", 4 );
+
+    returns( $clone, azimuth => undef, 'azimuth (invalid)' );
+    returns( $clone, doppler_count => 43701446204, 'doppler_count (valid)' );
+    returns( $clone, elevation => undef, 'elevation (invalid)' );
+    returns( $clone, range_delay => undef, 'range_delay (invalid)' );
+
+}
+
 sub decode {
     splice @_, 1, 0, 'decode';
     goto &returns;
