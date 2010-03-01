@@ -5,12 +5,14 @@ use warnings;
 
 use Test::More 0.40;
 
-plan ( tests => 39 );
+plan ( tests => 45 );
 
 require_ok('Astro::UTDF');
 
+i_can_ok( 'new' );
 i_can_ok( 'agc' );
 i_can_ok( 'azimuth' );
+i_can_ok( 'clone' );
 i_can_ok( 'data_validity' );
 i_can_ok( 'decode' );
 i_can_ok( 'doppler_count' );
@@ -19,6 +21,7 @@ i_can_ok( 'elevation' );
 i_can_ok( 'frequency_band' );
 i_can_ok( 'frequency_band_and_transmission_type' ),
 i_can_ok( 'front' );
+i_can_ok( 'hex_record' );
 i_can_ok( 'is_angle_valid' );
 i_can_ok( 'is_doppler_valid' );
 i_can_ok( 'is_range_valid' );
@@ -47,6 +50,19 @@ i_can_ok( 'transmit_frequency' );
 i_can_ok( 'vid' );
 i_can_ok( 'year' );
 
+SKIP: {
+    local $@;
+    my $utdf = eval { Astro::UTDF->new() };
+    isa_ok( $utdf, 'Astro::UTDF' )
+	or skip( 'new() did not return an Astro::UTDF', 2 );
+
+    my $clone = eval { $utdf->clone() };
+    isa_ok( $clone, 'Astro::UTDF' );
+    is_deeply( $clone, $utdf, q{Clone's attributes equal original's} );
+
+}
+
+
 # Check that we have accounted for all methods. The arguments are
 # imports, or other things that we do not want to account for as
 # methods.
@@ -54,19 +70,19 @@ thats_all_methods( qw{
 	PI
 	SPEED_OF_LIGHT
 	TWO_PI
-	UTDF_TEMPLATE
 	VERSION
 	can
 	carp
 	confess
 	croak
+	isa
 	openhandle
 	timegm
 	timelocal
 	_factor_K
 	_factor_M
-	_frequency_band
-	_measurement_time
+	_INSTANCE
+	_static
     } );
 
 {

@@ -29,6 +29,9 @@ decode ( $utdf, frequency_band => 'unspecified', 'decode frequency_band' );
 decode ( $utdf, measurement_time => 'Tue Dec  8 01:41:51 2009',
     'decode measurement_time' );
 decode ( $utdf, mode => '0x0220', 'decode mode' );
+decode ( $utdf, raw_record =>
+    '0d0a014141090cb2000101c1a75f000000000000000000000000000000000000000a2ccf263c00000c364d9840574057022002000100000000000000000000000000000000000000040f0f',
+    'decode raw_record' );
 decode ( $utdf, tracking_mode => 'autotrack', 'decode tracking_mode' );
 decode ( $utdf, transmission_type => 'test', 'decode transmission_type' );
 returns( $utdf, doppler_count => 43701446204, 'doppler_count' );
@@ -38,6 +41,9 @@ returns( $utdf, frequency_band => 0, 'frequency_band' );
 returns( $utdf, frequency_band_and_transmission_type => 0,
     'frequency_band_and_transmission_type' );
 hexify ( $utdf, front => '0d0a01', 'front' );
+returns( $utdf, hex_record =>
+    '0d0a014141090cb2000101c1a75f000000000000000000000000000000000000000a2ccf263c00000c364d9840574057022002000100000000000000000000000000000000000000040f0f',
+    'hex_record' );
 returns( $utdf, is_angle_valid => 0, 'is_angle_valid' );
 returns( $utdf, is_doppler_valid => 1, 'is_doppler_valid' );
 returns( $utdf, is_range_valid => 0, 'is_range_valid' );
