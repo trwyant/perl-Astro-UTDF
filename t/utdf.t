@@ -93,6 +93,13 @@ SKIP: {
 
 }
 
+{
+    my ( undef, $obj ) = Astro::UTDF->slurp( file => 't/doppler.utdf',
+	enforce_validity => 1 );
+    ok( eval { $obj->enforce_validity() },
+	'Can pass attributes to slurp()' );
+}
+
 sub decode {
     splice @_, 1, 0, 'decode';
     goto &returns;

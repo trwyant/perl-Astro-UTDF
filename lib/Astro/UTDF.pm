@@ -309,26 +309,48 @@ sub range_rate {
     }
 }
 
-sub slurp {
-    my ( $class, $fh ) = @_;
-    my $fn;
-    if ( ! openhandle( $fh ) ) {
-	$fn = $fh;
-	-f $fn or croak "$fn not a normal file";
-	$fh = IO::File->new( $fn, '<' )
-	    or croak "Unable to open $fn: $!";
+{
+
+    my %my_arg = map { $_ => 1 } qw{ file };
+
+    sub slurp {
+	my ( $class, @in_args ) = @_;
+
+	@in_args % 2 and unshift @in_args, 'file';
+	my ( %arg, @attrib );
+	while ( @in_args ) {
+	    my ( $name, $value ) = splice @in_args, 0, 2;
+	    if ( $my_arg{$name} ) {
+		$arg{$name} = $value;
+	    } else {
+		push @attrib, $name, $value;
+	    }
+	}
+	$arg{file} or croak "File not specified";
+
+	my $fh = $arg{file};
+	my $fn;
+	if ( ! openhandle( $fh ) ) {
+	    $fn = $fh;
+	    -f $fn or croak "$fn not a normal file";
+	    $fh = IO::File->new( $fn, '<' )
+		or croak "Unable to open $fn: $!";
+	}
+	binmode $fh;
+
+	my @rslt;
+	my ( $buffer, $count );
+	while ( $count = read $fh, $buffer, 75 ) {
+	    push @rslt, __PACKAGE__->new(
+		raw_record => $buffer,
+		prior_record => ( @rslt ? $rslt[-1] : undef ),
+		@attrib,
+	    );
+	}
+	close $fh;
+	return @rslt;
     }
-    binmode $fh;
-    my @rslt;
-    my ( $buffer, $count );
-    while ( $count = read $fh, $buffer, 75 ) {
-	push @rslt, __PACKAGE__->new(
-	    raw_record => $buffer,
-	    prior_record => @rslt ? $rslt[-1] : undef
-	);
-    }
-    close $fh;
-    return @rslt;
+
 }
 
 sub tracker_type {
@@ -852,10 +874,26 @@ This information comes from bytes 7-8 of the record.
 =head2 slurp
 
  my @data = Astro::UTDF->slurp( $file_name );
+ my @data = Astro::UTDF->slurp(
+     $file_name, attribute => $value ... );
+ my @data = Astro::UTDF->slurp(
+     file => $file_name, attribute => $value ... );
 
 This static method reads the given file, returning an array of
 Astro::UTDF objects. The argument can also be a handle to an open file.
-The file will be put into C<binmode> and read to the end.
+The file will be put into C<binmode> and read to the end. Astro::UTDF
+objects will be constructed from each of the records in the file, and
+returned in the order they were read. All records but the first will
+have their L<|/prior_record> attribute set to the previous record read.
+
+You can also pass name/value pairs. These will be passed as arguments to
+L<new()|/new> when the objects are created. If a value for an attribute
+normally read from the file is specified, the given value will override
+the value from the file.
+
+If the number of arguments is odd, the first argument is taken to be the
+file name or handle. You can also specify the file name or handle
+explicitly with C<< Astro::UTDF->slurp( file => $file_name ); >>.
 
 =head2 tdrss_only
 
