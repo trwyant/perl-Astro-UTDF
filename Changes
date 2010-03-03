@@ -1,2 +1,29 @@
+0.000_02	03-Mar-2010	T. R. Wyant
+  Corrected conversion of azimuth and elevation values to radians.
+  Make the following accessors into accessor/mutators: frequency_band(),
+    is_angle_valid(), is_doppler_valid(), is_range_valid(),
+    tracker_type() and transmission_type().
+  Add accessor/mutator is_last_frame().
+  Add hex_record() as accessor/mutator wrapping raw_record().
+  Recode slurp() in terms of new( raw_record => $buffer, ... ). You can
+    pass slurp() attribute_name/value pairs to override those read from
+    the file.
+  Make raw_record() a mutator as well as an accessor. As mutator, it
+    sets the values of all attributes contained in the UTDF record. As
+    accessor it constructs the record out of the attribute values.
+  Add methods new() and clone(). Both take attribute_name/value pairs as
+    arguments.
+  Have accessors that are not (yet) mutators croak when given an
+    argument.
+  Added dependency on Params::Util (for prior_record() validation).
+  Added method prior_record() to retrieve or set the prior record for
+    the purpose of computing Doppler shift. Doppler shift is now
+    computed on demand using prior_record().
+  Removed caching of computed results.
+  Added functionality test t/utdf.t.
+  Angle, range delay and doppler methods now return data even if the
+    relevant valid bit is not set, unless enforce_validity() is true.
+  Add accessor/mutator enforce_validity().
+
 0.000_01	24-Feb-2010	T. R. Wyant
   Initial source-controlled version.
