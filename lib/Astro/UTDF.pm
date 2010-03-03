@@ -213,6 +213,11 @@ sub is_range_valid {	## no critic (RequireArgUnpacking)
     goto &_bash_bit;
 }
 
+sub is_last_frame {	## no critic (RequireArgUnpacking)
+    splice @_, 1, 0, tracker_type_and_data_rate => 11;
+    goto &_bash_bit;
+}
+
 sub measurement_time {
     my ( $self, @args ) = @_;
     @args and croak "measurement_time() may not be used as a mutator";
@@ -756,6 +761,21 @@ is false.
 The range delay are considered valid if bit 0 (from 0) of
 L<< $utdf->data_validity()|/data_validity >> is set.
 
+=head2 is_last_frame
+
+ print 'This is ', ( $utdf->is_last_frame() ? '' : 'not ' ),
+     "the last frame\n";
+ $utdf->is_last_frame( 1 );
+
+When called without an argument, this method is an accessor returning 1
+(i.e. true) if the last-frame bit is set, and 0 (i.e. false) if not.
+
+When called with an argument, this method is a mutator which sets the
+last-frame bit to 1 if the argument is true and 0 if the argument
+is false.
+
+The last-frame bit is bit 11 (from 0) of L</tracker_type_and_data_rate>.
+
 =head2 measurement_time
 
  print 'Measured at ',
@@ -963,6 +983,8 @@ the value from the file.
 If the number of arguments is odd, the first argument is taken to be the
 file name or handle. You can also specify the file name or handle
 explicitly with C<< Astro::UTDF->slurp( file => $file_name ); >>.
+
+This method ignores the value of L</is_last_frame>.
 
 =head2 tdrss_only
 
