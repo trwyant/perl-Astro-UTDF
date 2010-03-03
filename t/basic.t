@@ -68,6 +68,7 @@ SKIP: {
 # imports, or other things that we do not want to account for as
 # methods.
 thats_all_methods( qw{
+	FULL_CIRCLE
 	PI
 	SPEED_OF_LIGHT
 	TWO_PI
@@ -80,6 +81,8 @@ thats_all_methods( qw{
 	openhandle
 	timegm
 	timelocal
+	_bash_bit
+	_bash_nybble
 	_factor_K
 	_factor_M
 	_INSTANCE

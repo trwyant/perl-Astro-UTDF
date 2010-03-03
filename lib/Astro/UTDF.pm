@@ -9,6 +9,7 @@ use Params::Util 0.25 qw{ _INSTANCE };
 use Scalar::Util qw{ openhandle };
 use Time::Local;
 
+use constant FULL_CIRCLE => 4294967296;	# 2 ** 32;
 use constant PI => atan2( 0, -1 );
 use constant TWO_PI => 2 * PI;
 use constant SPEED_OF_LIGHT => 299792.458;	# Km/sec, per U.S. NIST
@@ -30,7 +31,7 @@ sub azimuth {
     $self->enforce_validity()
 	and not $self->is_angle_valid()
 	and return undef;	## no critic (ProhibitExplicitReturnUndef)
-    return $self->{azimuth} * TWO_PI;
+    return $self->{azimuth} / FULL_CIRCLE * TWO_PI;
 }
 
 sub clone {
@@ -54,6 +55,11 @@ sub clone {
     }
     return $clone;
 }
+
+# TODO sub data_rate
+# This is the low 3 nybbles of transmission_type_and_data_rate, encoded
+# per that field's docs. I want to get it to consistent units, which I
+# think will be seconds.
 
 {
 
@@ -163,7 +169,7 @@ sub elevation {
     $self->enforce_validity()
 	and not $self->is_angle_valid()
 	and return undef;	## no critic (ProhibitExplicitReturnUndef)
-    my $elev = $self->{elevation} * TWO_PI;
+    my $elev = $self->{elevation} / FULL_CIRCLE * TWO_PI;
     $elev >= PI and $elev -= TWO_PI;
     return $elev;
 }
@@ -179,9 +185,8 @@ sub enforce_validity {
 }
 
 sub frequency_band {
-    my ( $self, @args ) = @_;
-    @args and croak "frequency_band() may not be used as a mutator";
-    return ( $self->{frequency_band_and_transmission_type} & 0xF0 ) >> 4;
+    splice @_, 1, 0, frequency_band_and_transmission_type => 1;
+    goto &_bash_nybble;
 }
 
 sub hex_record {
@@ -193,22 +198,19 @@ sub hex_record {
     }
 }
 
-sub is_angle_valid {
-    my ( $self, @args ) = @_;
-    @args and croak "is_angle_valid() may not be used as a mutator";
-    return ( $self->{data_validity} & 0x4 ) ? 1 : 0;
+sub is_angle_valid {	## no critic (RequireArgUnpacking)
+    splice @_, 1, 0, data_validity => 2;
+    goto &_bash_bit;
 }
 
-sub is_doppler_valid {
-    my ( $self, @args ) = @_;
-    @args and croak "is_doppler_valid() may not be used as a mutator";
-    return ( $self->{data_validity} & 0x2 ) ? 1 : 0;
+sub is_doppler_valid {	## no critic (RequireArgUnpacking)
+    splice @_, 1, 0, data_validity => 1;
+    goto &_bash_bit;
 }
 
-sub is_range_valid {
-    my ( $self, @args ) = @_;
-    @args and croak "is_range_valid() may not be used as a mutator";
-    return ( $self->{data_validity} & 0x1 ) ? 1 : 0;
+sub is_range_valid {	## no critic (RequireArgUnpacking)
+    splice @_, 1, 0, data_validity => 0;
+    goto &_bash_bit;
 }
 
 sub measurement_time {
@@ -354,9 +356,8 @@ sub range_rate {
 }
 
 sub tracker_type {
-    my ( $self, @args ) = @_;
-    @args and croak "tracker_type() may not be used as a mutator";
-    return ( $self->{tracker_type_and_data_rate} & 0xF000 ) >> 12;
+    splice @_, 1, 0, tracker_type_and_data_rate => 3;
+    goto &_bash_nybble;
 }
 
 sub tracking_mode {
@@ -366,9 +367,8 @@ sub tracking_mode {
 }
 
 sub transmission_type {
-    my ( $self, @args ) = @_;
-    @args and croak "transmission_type() may not be used as a mutator";
-    return $self->{frequency_band_and_transmission_type} & 0x0F;
+    splice @_, 1, 0, frequency_band_and_transmission_type => 0;
+    goto &_bash_nybble;
 }
 
 sub transmit_frequency {
@@ -403,6 +403,44 @@ foreach my $accessor ( qw{
     };
 }
 
+# Generic accessor/mutator for single bits. The specific
+# accessor/mutator splices the attribute name and the bit number into
+# the argument list after the object, and co-routines to this (or calls
+# it returning whatever it returns). NOTE: I would love to use vec()
+# here, but that works on strings.
+sub _bash_bit {
+    my ( $self, $attr, $bit, @args ) = @_;
+    my $mask = 0x01 << $bit;
+    if ( @args ) {
+	if ( $args[0] ) {
+	    $self->{$attr} |= $mask;
+	} else {
+	    $self->{$attr} &= ~ $mask;
+	}
+	return $self;
+    } else {
+	return $self->{$attr} & $mask ? 1 : 0;
+    }
+}
+
+# Generic accessor/mutator for nybbles. The specific accessor/mutator
+# splices the attribute name and the nybble number into the argument
+# list after the object, and co-routines to this (or calls it returning
+# whatever it returns). NOTE: I would love to use vec() here, but that
+# works on strings.
+sub _bash_nybble {
+    my ( $self, $attr, $bit, @args ) = @_;
+    my $shift = 4 * $bit;
+    my $mask = 0x0f << $shift;
+    if ( @args ) {
+	$self->{$attr} &= ~ $mask;
+	$self->{$attr} |= ( $args[0] & 0x0f ) << $shift;
+	return $self;
+    } else {
+	return ( $self->{$attr} & $mask ) >> $shift;
+    }
+}
+
 # Return the factor M, which is documented as 1000 for S-band or 100 for
 # K-band. Since we know we can't count on the frequency_band, we
 # compute this ourselves, making the break at the bottom of the Ku band.
@@ -422,6 +460,8 @@ sub _factor_K {
 }
 
 1;
+
+__END__
 
 =head1 NAME
 
@@ -604,10 +644,18 @@ This attribute defaults to C<undef> (that is, false).
 
  printf "Frequency band is 0x%01x\n",
      $utdf->frequency_band();
+ $utdf->frequency_band( 3 );
 
-This method returns a number from 0-15, extracted from the high nybble
-of the L</frequency_band_and_transmission_type>, and encoded the same
-way. This datum encodes the frequency band being used.
+When called without an argument, this method is an accessor returning
+the frequency band encoded as a number from 0 to 15.
+
+When called with an argument, this method is a mutator which sets the
+frequency band to a number from 0 to 15; this number comes from the low
+4 bits of the argument.
+
+The frequency band is found in the high nybble of the
+L</frequency_code_and_transmission_type>, and the encoding is documented
+there.
 
 =head2 frequency_band_and_transmission_type
 
@@ -664,8 +712,15 @@ the raw record by C<pack 'H*'> and then passes that to L</raw_record>.
 
  print 'Angle data are ', (
      $utdf->is_angle_valid() ? '' : 'not' ), " valid\n";
+ $utdf->is_angle_valid( 1 );
 
-This method returns true if the angle data are valid, and false if not.
+When called without an argument, this method is an accessor returning 1
+(i.e. true) if angles are valid, and 0 (i.e. false) if not.
+
+When called with an argument, this method is a mutator which sets the
+angle validity to 1 if the argument is true and 0 if the argument is
+false.
+
 The angle data are considered valid if bit 2 (from 0) of
 L<< $utdf->data_validity()|/data_validity >> is set.
 
@@ -673,18 +728,32 @@ L<< $utdf->data_validity()|/data_validity >> is set.
 
  print 'Doppler data are ', (
      $utdf->is_doppler_valid() ? '' : 'not' ), " valid\n";
+ $utdf->is_doppler_valid( 1 );
 
-This method returns true if the doppler data are valid, and false if
-not.  The doppler data are considered valid if bit 1 (from 0) of
+When called without an argument, this method is an accessor returning 1
+(i.e. true) if doppler counts are valid, and 0 (i.e. false) if not.
+
+When called with an argument, this method is a mutator which sets the
+doppler count validity to 1 if the argument is true and 0 if the
+argument is false.
+
+The doppler counts are considered valid if bit 1 (from 0) of
 L<< $utdf->data_validity()|/data_validity >> is set.
 
 =head2 is_range_valid
 
  print 'Range data are ', (
      $utdf->is_range_valid() ? '' : 'not' ), " valid\n";
+ $utdf->is_range_valid( 1 );
 
-This method returns true if the range data are valid, and false if not.
-The range data are considered valid if bit 0 (from 0) of
+When called without an argument, this method is an accessor returning 1
+(i.e. true) if the range delay is valid, and 0 (i.e. false) if not.
+
+When called with an argument, this method is a mutator which sets the
+range delay validity to 1 if the argument is true and 0 if the argument
+is false.
+
+The range delay are considered valid if bit 0 (from 0) of
 L<< $utdf->data_validity()|/data_validity >> is set.
 
 =head2 measurement_time
@@ -884,7 +953,7 @@ Astro::UTDF objects. The argument can also be a handle to an open file.
 The file will be put into C<binmode> and read to the end. Astro::UTDF
 objects will be constructed from each of the records in the file, and
 returned in the order they were read. All records but the first will
-have their L<|/prior_record> attribute set to the previous record read.
+have their L</prior_record> attribute set to the previous record read.
 
 You can also pass name/value pairs. These will be passed as arguments to
 L<new()|/new> when the objects are created. If a value for an attribute
@@ -905,9 +974,18 @@ This information comes from bytes 55-72 of the record.
 =head2 tracker_type
 
  printf "Tracker type: 0x%01x\n", $utdf->tracker_type();
+ $utdf->tracker_type( 1 );
 
-This method returns the tracker type. This is extracted from the high
-nybble of L</tracker_type_and_data_rate>, and is encoded the same way.
+When called without an argument, this method is an accessor returning
+the tracker type encoded as a number from 0 to 15.
+
+When called with an argument, this method is a mutator which sets the
+tracker type to a number from 0 to 15; this number comes from the low
+4 bits of the argument.
+
+The tracker type is found in the high nybble of the
+L</tracker_type_and_data_rate>, and the encoding is documented
+there.
 
 =head2 tracker_type_and_data_rate
 
@@ -948,10 +1026,18 @@ the L</mode> field, and the encoding is documented there.
 =head2 transmission_type
 
  print 'The transmission type is ', $utdf->transmission_type(), "\n";
+ $utdf->transmission_type( 4 );
 
-This method returns the transmission type. This information comes from
-the low nybble of the L</frequency_code_and_transmission_type>, and the
-encoding is documented there.
+When called without an argument, this method is an accessor returning
+the transmission type encoded as a number from 0 to 15.
+
+When called with an argument, this method is a mutator which sets the
+transmission type to a number from 0 to 15; this number comes from the low
+4 bits of the argument.
+
+The transmission type is found in the low nybble of the
+L</frequency_code_and_transmission_type>, and the encoding is documented
+there.
 
 =head2 transmit_antenna_padid
 
@@ -1044,7 +1130,5 @@ without any warranty; without even the implied warranty of
 merchantability or fitness for a particular purpose.
 
 =cut
-
-__END__
 
 # ex: set textwidth=72 :
