@@ -64,31 +64,37 @@ SKIP: {
 
 }
 
+SKIP: {
 
-# Check that we have accounted for all methods. The arguments are
-# imports, or other things that we do not want to account for as
-# methods.
-thats_all_methods( qw{
-	FULL_CIRCLE
-	PI
-	SPEED_OF_LIGHT
-	TWO_PI
-	VERSION
-	can
-	carp
-	confess
-	croak
-	isa
-	openhandle
-	timegm
-	timelocal
-	_bash_bit
-	_bash_nybble
-	_factor_K
-	_factor_M
-	_INSTANCE
-	_static
-    } );
+    $ENV{DEVELOPER_TEST}
+	or skip( '$ENV{DEVELOPER_TEST} is false', 1 );
+
+    # Check that we have accounted for all methods. The arguments are
+    # imports, or other things that we do not want to account for as
+    # methods.
+    thats_all_methods( qw{
+	    FULL_CIRCLE
+	    PI
+	    SPEED_OF_LIGHT
+	    TWO_PI
+	    VERSION
+	    can
+	    carp
+	    confess
+	    croak
+	    isa
+	    openhandle
+	    timegm
+	    timelocal
+	    _bash_angle
+	    _bash_bit
+	    _bash_nybble
+	    _factor_K
+	    _factor_M
+	    _INSTANCE
+	    _static
+	} );
+}
 
 {
 

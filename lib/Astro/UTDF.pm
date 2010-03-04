@@ -26,12 +26,8 @@ sub new {	## no critic (RequireArgUnpacking)
 }
 
 sub azimuth {
-    my ( $self, @args ) = @_;
-    @args and croak "azimuth() may not be used as a mutator";
-    $self->enforce_validity()
-	and not $self->is_angle_valid()
-	and return undef;	## no critic (ProhibitExplicitReturnUndef)
-    return $self->{azimuth} / FULL_CIRCLE * TWO_PI;
+    splice @_, 1, 0, azimuth => TWO_PI;
+    goto &_bash_angle;
 }
 
 sub clone {
@@ -164,14 +160,8 @@ sub doppler_shift {
 }
 
 sub elevation {
-    my ( $self, @args ) = @_;
-    @args and croak "elevation() may not be used as a mutator";
-    $self->enforce_validity()
-	and not $self->is_angle_valid()
-	and return undef;	## no critic (ProhibitExplicitReturnUndef)
-    my $elev = $self->{elevation} / FULL_CIRCLE * TWO_PI;
-    $elev >= PI and $elev -= TWO_PI;
-    return $elev;
+    splice @_, 1, 0, elevation => PI;
+    goto &_bash_angle;
 }
 
 sub enforce_validity {
@@ -408,6 +398,31 @@ foreach my $accessor ( qw{
     };
 }
 
+# Generic accessor/mutator for angles. The specific accessor/mutator
+# splices the attribute name and the upper limit in radians onto the
+# argument list after the object, and co-routines to this (or calls it
+# returning whatever it returns). Note that the upper limit is used only
+# to normalize the angle for the accessor; all angles are stored as
+# positive fractions of a circle.
+# WE ASSUME ANYTHING THAT GOES THROUGH THIS CODE IS SUBJECT TO
+# is_angle_valid().
+sub _bash_angle {
+    my ( $self, $attr, $upper, @args ) = @_;
+    if ( @args ) {
+	my $angle = $args[0] / TWO_PI;
+	$angle -= floor( $angle );
+	$self->{$attr} = floor( $angle * FULL_CIRCLE + 0.5 );
+	return $self;
+    } else {
+	$self->enforce_validity()
+	    and not $self->is_angle_valid()
+	    and return undef;	## no critic (ProhibitExplicitReturnUndef)
+	my $angle = $self->{$attr} / FULL_CIRCLE * TWO_PI;
+	$angle >= $upper and $angle -= TWO_PI;
+	return $angle;
+    }
+}
+
 # Generic accessor/mutator for single bits. The specific
 # accessor/mutator splices the attribute name and the bit number into
 # the argument list after the object, and co-routines to this (or calls
@@ -522,11 +537,18 @@ This information comes from bytes 39-40 of the record.
 =head2 azimuth
 
  print 'Azimuth is ', $utdf->azimuth(), " radians\n";
+ $utdf->azimuth( 1.23098 );
 
-This method returns the value of the antenna azimuth in radians.  If
-L</enforce_validity> is true, this method will return C<undef> if
+When called without an argument, this method is an accessor returning
+the antenna azimuth in radians, in the range 0 <= azimuth <= TWO_PI. If
+L</enforce_validity> is true, this method return C<undef> if
 L</is_angle_valid> (bit 2 (from 0) of the L</data_validity> attribute)
 is false.
+
+When called with an argument, this method is a mutator which sets the
+antenna azimuth to the angle given (in radians) in its argument. The
+angle will be normalized before storage. Setting the azimuth does not
+set is_angle_valid( 1 ); you must do this yourself.
 
 This information comes from bytes 19-22 of the record.
 
@@ -616,13 +638,20 @@ of either of the two records involved is false.
 =head2 elevation
 
  print 'Elevation is ', $utdf->elevation(), " radians\n";
+ $utdf->elevation( 0.65321 );
 
-This method returns the elevation angle of the antenna, in radians.  If
-L</enforce_validity> is true, this method will return C<undef> if
+When called without an argument, this method is an accessor returning
+the antenna elevation in radians, in the range -PI <= elevation < PI. If
+L</enforce_validity> is true, this method return C<undef> if
 L</is_angle_valid> (bit 2 (from 0) of the L</data_validity> attribute)
 is false.
 
-This information comes from bytes 19-22 of the record.
+When called with an argument, this method is a mutator which sets the
+antenna elevation to the angle given (in radians) in its argument. The
+angle will be normalized before storage. Setting the elevation does not
+set is_angle_valid( 1 ); you must do this yourself.
+
+This information comes from bytes 23-26 of the record.
 
 =head2 enforce_validity
 
