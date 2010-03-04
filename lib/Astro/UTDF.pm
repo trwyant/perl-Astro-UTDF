@@ -16,12 +16,8 @@ use constant SPEED_OF_LIGHT => 299792.458;	# Km/sec, per U.S. NIST
 
 our $VERSION = '0.000_02';
 
-# Perl::Critic annotation required because of the assignment to @_
-# before the co-routine call to clone().
-sub new {	## no critic (RequireArgUnpacking)
-    my ( $class, @args ) = @_;
-    ref $class and $class = ref $class;
-    @_ = ( $class, @args );
+sub new {
+    $_[0] = ref $_[0] || $_[0];
     goto &clone;
 }
 
@@ -203,22 +199,22 @@ sub hex_record {
     }
 }
 
-sub is_angle_valid {	## no critic (RequireArgUnpacking)
+sub is_angle_valid {
     splice @_, 1, 0, data_validity => 2;
     goto &_bash_bit;
 }
 
-sub is_doppler_valid {	## no critic (RequireArgUnpacking)
+sub is_doppler_valid {
     splice @_, 1, 0, data_validity => 1;
     goto &_bash_bit;
 }
 
-sub is_range_valid {	## no critic (RequireArgUnpacking)
+sub is_range_valid {
     splice @_, 1, 0, data_validity => 0;
     goto &_bash_bit;
 }
 
-sub is_last_frame {	## no critic (RequireArgUnpacking)
+sub is_last_frame {
     splice @_, 1, 0, tracker_type_and_data_rate => 11;
     goto &_bash_bit;
 }
