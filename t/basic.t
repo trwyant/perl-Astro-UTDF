@@ -5,7 +5,7 @@ use warnings;
 
 use Test::More 0.40;
 
-plan ( tests => 47 );
+plan ( tests => 48 );
 
 require_ok('Astro::UTDF');
 
@@ -13,6 +13,7 @@ i_can_ok( 'new' );
 i_can_ok( 'agc' );
 i_can_ok( 'azimuth' );
 i_can_ok( 'clone' );
+i_can_ok( 'data_interval' );
 i_can_ok( 'data_validity' );
 i_can_ok( 'decode' );
 i_can_ok( 'doppler_count' );

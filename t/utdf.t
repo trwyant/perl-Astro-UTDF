@@ -23,6 +23,7 @@ my ( $prior, $utdf ) = Astro::UTDF->slurp( 't/doppler.utdf' );
 
 returns( $utdf, agc => 0, 'agc' );
 returns( $utdf, azimuth => 0, 'azimuth' );
+returns( $utdf, data_interval => 256, 'data_interval' );
 returns( $utdf, data_validity => 2, 'data_validity' );
 decode ( $utdf, data_validity => '0x02', 'decode data_validity' );
 decode ( $utdf, frequency_band => 'unspecified', 'decode frequency_band' );
@@ -47,6 +48,7 @@ returns( $utdf, hex_record =>
 returns( $utdf, is_angle_valid => 0, 'is_angle_valid' );
 returns( $utdf, is_doppler_valid => 1, 'is_doppler_valid' );
 returns( $utdf, is_range_valid => 0, 'is_range_valid' );
+returns( $utdf, is_last_frame => 0, 'is_last_frame' );
 returns( $utdf, measurement_time => 1260236511, 'measurement_time' );
 returns( $utdf, microseconds_of_year => 0, 'microseconds_of_year' );
 returns( $utdf, mode => 544, 'mode' );

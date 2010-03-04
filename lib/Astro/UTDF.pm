@@ -52,10 +52,25 @@ sub clone {
     return $clone;
 }
 
-# TODO sub data_rate
-# This is the low 3 nybbles of transmission_type_and_data_rate, encoded
-# per that field's docs. I want to get it to consistent units, which I
-# think will be seconds.
+sub data_interval {
+    my ( $self, @args ) = @_;
+    if ( @args ) {
+	( my $interval = shift @args ) <= 0
+	    and croak "Negative data interval invalid";
+	if ( $interval < 1 && $interval > 0 ) {
+	    $interval = 1 / $interval;
+	    $interval = ( ~ $interval & 0x07ff ) + 1;
+	}
+	$self->{tracker_type_and_data_rate} &= ~ 0x7ff;
+	$self->{tracker_type_and_data_rate} |= $interval & 0x07ff;
+	return $self;
+    } else {
+	my $interval = $self->{tracker_type_and_data_rate} & 0x07ff;
+	$interval & 0x0400 or return $interval;
+	$interval = ( ~ $interval & 0x07ff ) + 1;
+	return 1 / $interval;
+    }
+}
 
 {
 
@@ -566,6 +581,19 @@ the names of mutator methods, and the arguments are arguments to them.
 The mutators are called on the clone, not the original object.
 
 If you call this as a static method, it is equivalent to L<new()|/new>.
+
+=head2 data_interval
+
+ printf 'Data interval = ', $utdf->data_interval(), " seconds\n";
+ $utdf->data_interval( 1 );
+
+When called without an argument, this method is an accessor returning
+the data interval in seconds, from bits 0-10 (from 0) of
+L</tracker_type_and_data_rate>. It is possible to get fractions of a
+second.
+
+When called with an argument, this method is a mutator which sets the
+data interval in seconds. The argument must not be negative.
 
 =head2 data_validity
 
