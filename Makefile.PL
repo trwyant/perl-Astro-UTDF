@@ -17,7 +17,7 @@ my %args = (
     ABSTRACT => 'Represent Universal Tracking Data Format (UTDF) data',
 );
 
-$mmv >= 6.31 and $args{LICENSE} => 'perl';
+$mmv >= 6.31 and $args{LICENSE} = 'perl';
 
 $mmv >= 6.4501 and $args{META_ADD} = {
     no_index => {
