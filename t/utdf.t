@@ -100,6 +100,112 @@ SKIP: {
 	enforce_validity => 1 );
     ok( eval { $obj->enforce_validity() },
 	'Can pass attributes to slurp()' );
+
+    $obj->enforce_validity( 0 );
+
+    $obj->agc( 10000 );
+    returns( $obj, agc => 10000, 'Round-trip agc' );
+
+    $obj->azimuth( 1 );
+    returns( $obj, { sprintf => '%.8f' }, azimuth => '1.00000000',
+	'Round-trip azimuth' );
+
+    $obj->data_interval( 1 );
+    returns( $obj, data_interval => 1, 'Round-trip data_interval' );
+
+    $obj->data_validity( 7 );
+    returns( $obj, data_validity => 7, 'Round-trip data_validity' );
+
+    $obj->doppler_count( 123456789 );
+    returns( $obj, doppler_count => 123456789, 'Round-trip doppler_count' );
+
+    $obj->elevation( 1 );
+    returns( $obj, { sprintf => '%.8f' }, elevation => '1.00000000',
+	'Round-trip elevation' );
+
+    $obj->frequency_band( 3 );
+    returns( $obj, frequency_band => 3, 'Round-trip frequency_band' );
+
+    $obj->frequency_band_and_transmission_type( 1028 );
+    returns( $obj, frequency_band_and_transmission_type => 1028,
+	'Round-trip frequency_band_and_transmission_type' );
+
+    $obj->is_angle_valid( 'true' );
+    returns( $obj, is_angle_valid => 1, 'Round-trip is_angle_valid' );
+
+    $obj->is_doppler_valid( undef );
+    returns( $obj, is_doppler_valid => 0, 'Round-trip is_doppler_valid' );
+
+    $obj->is_range_valid( [] );
+    returns( $obj, is_range_valid => 1, 'Round-trip is_range_valid' );
+
+    $obj->is_last_frame( 1 );
+    returns( $obj, is_last_frame => 1, 'Round-trip is_last_frame' );
+
+    # TODO measurement_time
+
+    $obj->microseconds_of_year( 314159 );
+    returns( $obj, microseconds_of_year => 314159,
+	'Round-trip microseconds_of_year' );
+
+    $obj->mode( 12 );
+    returns( $obj, mode => 12, 'Round-trip mode' );
+
+    $obj->range_delay( 9876543210 );
+    returns( $obj, range_delay => 9876543210, 'Round-trip range_delay' );
+
+    $obj->receive_antenna_padid( 42 );
+    returns( $obj, receive_antenna_padid => 42,
+	'Round-trip receive_antenna_padid' );
+
+    $obj->receive_antenna_type( 1025 );
+    returns( $obj, receive_antenna_type => 1025,
+	'Round-trip receive_antenna_type' );
+
+    $obj->router( '??' );
+    returns( $obj, router => '??', 'Round-trip router' );
+
+    $obj->seconds_of_year( 9999999 );
+    returns( $obj, seconds_of_year => 9999999,
+	'Round-trip seconds_of_year' );
+
+    $obj->sic( 86 );
+    returns( $obj, sic => 86, 'Round-trip sic' );
+
+    $obj->tdrss_only( 'Hello, world!' );
+    returns( $obj, tdrss_only => 'Hello, world!',
+	'Round-trip tdrss_only' );
+
+    $obj->tracker_type( 9 );
+    returns( $obj, tracker_type => 9, 'Round-trip tracker_type' );
+
+    $obj->tracker_type_and_data_rate( 2 );
+    returns( $obj, tracker_type_and_data_rate => 2,
+	'Round-trip tracker_type_and_data_rate' );
+
+    # TODO tracking_mode
+
+    $obj->transmission_type( 10 );
+    returns( $obj, transmission_type => 10,
+	'Round-trip transmission_type' );
+
+    $obj->transmit_antenna_padid( 42 );
+    returns( $obj, transmit_antenna_padid => 42,
+	'Round-trip transmit_antenna_padid' );
+
+    $obj->transmit_antenna_type( 1025 );
+    returns( $obj, transmit_antenna_type => 1025,
+	'Round-trip transmit_antenna_type' );
+
+    # TODO transmit_frequency
+
+    $obj->vid( 99 );
+    returns( $obj, vid => 99, 'Roumnd-trip vid' );
+
+    $obj->year( 8 );
+    returns( $obj, year => 8, 'Round-trip year' );
+
+    # TODO all the simple accessors
 }
 
 sub decode {
@@ -124,9 +230,10 @@ sub returns {
 	@_ = "$name threw $@";
 	goto &fail;
     };
-    if ( $opt->{unpack} ) {
-	$got = unpack $opt->{unpack}, $got;
-    }
+    $opt->{unpack}
+	and $got = unpack $opt->{unpack}, $got;
+    $opt->{sprintf}
+	and $got = sprintf $opt->{sprintf}, $got;
     @_ = ( $got, $want, $name );
     goto &is;
 }

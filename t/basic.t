@@ -83,6 +83,7 @@ SKIP: {
 	    carp
 	    confess
 	    croak
+	    floor
 	    isa
 	    openhandle
 	    timegm

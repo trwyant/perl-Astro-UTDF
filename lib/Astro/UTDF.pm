@@ -6,6 +6,7 @@ use warnings;
 use Carp;
 use IO::File ();
 use Params::Util 0.25 qw{ _INSTANCE };
+use POSIX qw{ floor };
 use Scalar::Util qw{ openhandle };
 use Time::Local;
 
@@ -288,9 +289,11 @@ sub range_rate {
 	    my $raw_record = shift @args;
 	    length $raw_record == 75
 		or croak "Invalid raw record: length not 75 bytes";
+	    use bytes;
 	    @$self{ @utdf_fields } = unpack $utdf_template, $raw_record;
 	    return $self;
 	} else {
+	    use bytes;
 	    return pack $utdf_template, @$self{ @utdf_fields };
 	}
     }
@@ -377,7 +380,7 @@ sub transmit_frequency {
 # Generate all the simple accessors. These just return the value of
 # the correspondingly-named attribute, which is assumed to exist.
 
-foreach my $accessor ( qw{
+foreach my $attribute ( qw{
     front router year sic vid seconds_of_year
     microseconds_of_year
     agc
@@ -393,10 +396,14 @@ foreach my $accessor ( qw{
     rear
 } ) {
     no strict qw{ refs };
-    *$accessor = sub {
+    *$attribute = sub {
 	my ( $self, @args ) = @_;
-	@args and croak "$accessor() may not be used as a mutator";
-	return $_[0]->{$accessor};
+	if ( @args ) {
+	    $self->{$attribute} = shift @args;
+	    return $self;
+	} else {
+	    return $self->{$attribute};
+	}
     };
 }
 
@@ -557,7 +564,11 @@ all attributes initialized to 0, except:
 
  print 'AGC is ', $utdf->agc(), "\n";
 
-This method returns the value of the AGC signal level at the receiver.
+When called without an argument, this method is an accessor returning
+the value of the AGC signal level at the receiver.
+
+When called with an argument, this method is a mutator which sets the
+value of the AGC signal level at the receiver.
 
 This information comes from bytes 39-40 of the record.
 
@@ -611,8 +622,13 @@ data interval in seconds. The argument must not be negative.
 
  printf "Data validity is 0x%02x\n", $utdf->data_validity();
 
-This method returns the data validity mask. The bits (from bit 0 = least
-significant) are:
+When called without an argument, this method is an accessor returning
+the data validity mask.
+
+When called with an argument, this method is a mutator which sets the
+data validity mask.
+
+The bits of the data validity mask (from bit 0 = least significant) are:
 
  0 - range valid
  1 - range rate valid
@@ -740,8 +756,15 @@ there.
 
  printf "The frequency band and transmission type are 0x%02x\n",
      $utdf->frequency_band_and_transmission_type();
+ $utdf->frequency_band_and_transmission_type( 0x11 );
 
-This method returns the frequency band and transmission type. The most
+When called without an argument, this method is an accessor returning
+the frequency band and transmission type.
+
+When called with an argument, this method is a mutator which sets the
+frequency band and transmission type.
+
+This field represents two data items packed into a byte. The most
 significant nybble encodes the frequency (in hexadecimal) as follows:
 
   0 - unspecified
@@ -770,9 +793,13 @@ This information comes from byte 52 of the record.
 =head2 front
 
  printf "The front 3 bytes are 0x%06x\n", $utdf->front();
+ $utdf->front( "abc" );
 
-This method returns the constant field at the front of the record, which
-should always be 0x0d0a01.
+When called without an argument, this method is an accessor returning
+the front 3 bytes of the record. This should always be 0x0d0a01.
+
+When called with an argument, this method is a mutator which sets the
+front 3 bytes of the record.
 
 This information comes from bytes 1-3 of the record.
 
@@ -866,19 +893,30 @@ field, and the microseconds_of_year field.
  print 'Measured at ',
      $utdf->microseconds_of_year(),
      " microseconds after the second.\n";
+ $utdf->microseconds_of_year( 2000 );
 
-This method returns the number of microseconds after the second the
-measurement was taken.
+When called without an argument, this method is an accessor returning
+the number of microseconds after an even second that the measurement
+was made.
+
+When called with an argument, this method is a mutator which sets the
+number of microseconds since an even second.
 
 This information comes from bytes 15-18 of the record.
 
 =head2 mode
 
  printf "System-unique mode: 0x%04x\n", $utdf->mode();
+ $utdf->mode( 12 );
 
-This method returns the system-unique mode information. The data depend
-on the system being used, and are encoded in the bits of the mode as
-follows, 0 being the least-significant bit:
+When called without an argument, this method is an accessor returning
+the system-unique mode information.
+
+When called with an argument, this method is a mutator which sets the
+system-unique mode information.
+
+The data depend on the system being used, and are encoded in the bits of
+the mode as follows, 0 being the least-significant bit:
 
 =over
 
@@ -981,8 +1019,11 @@ binary, 75 bytes long.
 
  printf "The rear 3 bytes are 0x%06x\n", $utdf->rear();
 
-This method returns the constant field at the end of the record, which
-should always be 0x040f0f.
+When called without an argument, this method is an accessor returning
+the last three bytes of the record.
+
+When called with an argument, this method is a mutator which sets the
+last three bytes of the record. These should always be 0x040f0f.
 
 This information comes from bytes 73-75 of the record.
 
@@ -990,8 +1031,13 @@ This information comes from bytes 73-75 of the record.
 
  print 'The receive antenna PADID is ',
      $utdf->receive_antenna_padid(), "\n";
+ $utdf->receive_antenna_padid( 72 );
 
-This method returns the receive antenna PADID.
+When called without an argument, this method is an accessor returning
+the receive antenna PADID.
+
+When called with an argument, this method is a mutator which sets the
+receive antenna PADID.
 
 This information comes from byte 48 of the record.
 
@@ -999,18 +1045,31 @@ This information comes from byte 48 of the record.
 
  print 'The receive antenna diameter/type code is ',
      $utdf->receive_antenna_type(), "\n";
+ $utdf->receive_antenna_type( 65 );
 
-This method returns the receive antenna diameter/type code. This is a
-byte, encoded the same way as the L</transmit_antenna_type>.
+When called without an argument, this method is an accessor returning
+the receive antenna diameter and type codes.
+
+When called with an argument, this method is a mutator which sets the
+receive antenna diameter and type codes.
+
+This datum is a byte, encoded the same way as the
+L</transmit_antenna_type>.
 
 This information comes from byte 47 of the record.
 
 =head2 router
 
  print 'Tracking data router: ', $utdf->router(), "\n";
+ $utdf->router( 'DD' );
 
-This method returns the tracking data router, encoded as two ASCII
-characters. Known codes are:
+When called without an argument, this method is an accessor returning
+the tracking data router.
+
+When called with an argument, this method is a mutator which sets the
+tracking data router.
+
+Known router codes are:
 
  AA = GSFC
  DD = GSFC
@@ -1025,18 +1084,27 @@ This information comes from bytes 4-5 of the record.
 
  print 'Measured at ', $utdf->seconds_of_year(),
      " seconds after the start of the year\n";
+ $utdf->seconds_of_year( 9999999 );
 
-This method returns the number of seconds after the start of the year
-the measurement was taken.
+When called without an argument, this method is an accessor returning
+the number of seconds since the start of the year that the measurement
+was made.
+
+When called with an argument, this method is a mutator which sets the
+number of seconds since the start of the year.
 
 This information comes from bytes 11-14 of the record.
 
 =head2 sic
 
  print 'The SIC is ', $utdf->sic(), "\n";
+ $utdf->sic( 42 );
 
-This method returns the SIC. I have no further information on what this
-is.
+When called without an argument, this method is an accessor returning
+the SIC. I have no further information on what this is.
+
+When called with an argument, this method is a mutator which sets the
+SIC.
 
 This information comes from bytes 7-8 of the record.
 
@@ -1068,8 +1136,15 @@ This method ignores the value of L</is_last_frame>.
 
 =head2 tdrss_only
 
-This method returns the 18 bytes of the record that are for Space
-Network (TDRSS) use only.
+ print 'TDRSS data: ', unpack( 'H*', $utdf->tdrss_only() ), "\n";
+ $utdf->tdrss_only( 'Hello, sailor!' );
+
+When called without an argument, this method is an accessor returning
+the TDRSS-only data.
+
+When called with an argument, this method is a mutator which sets the
+TDRSS-only data. These are 18 bytes reserved for Space Network (TDRSS)
+use only.
 
 This information comes from bytes 55-72 of the record.
 
@@ -1093,9 +1168,16 @@ there.
 
  printf "Tracker type and data rate: 0x%04x\n",
      $utdf->tracker_type_and_data_rate();
+ $utdf->tracker_type_and_data_rate( 2 );
 
-This method returns the tracker type and data rate. The most significant
-nybble encodes the tracker type as follows (in hexadecimal):
+When called without an argument, this method is an accessor returning
+the tracker type, the last-frame flag, and the data rate.
+
+When called with an argument, this method is a mutator which sets the
+tracker type, the last-frame flag, and the data rate.
+
+These data are packed into two bytes.  The most significant nybble
+encodes the tracker type as follows (in hexadecimal):
 
   0 - C-band pulse track
   1 - SRE (S-band and VHF) or RER
@@ -1145,8 +1227,13 @@ there.
 
  print 'The transmit antenna PADID is ',
      $utdf->transmit_antenna_padid(), "\n";
+ $utdf->transmit_antenna_padid( 72 );
 
-This method returns the transmit antenna PADID.
+When called without an argument, this method is an accessor returning
+the transmit antenna PADID.
+
+When called with an argument, this method is a mutator which sets the
+transmit antenna PADID.
 
 This information comes from byte 46 of the record.
 
@@ -1154,10 +1241,16 @@ This information comes from byte 46 of the record.
 
  print 'The transmit antenna diameter/type code is ',
      $utdf->transmit_antenna_type(), "\n";
+ $utdf->transmit_antenna_type( 65 );
 
-This method returns the transmit antenna diameter/type code. This is a
-byte, whose most-significant nybble encodes the antenna size as follows
-(in hexadecimal):
+When called without an argument, this method is an accessor returning
+the transmit antenna diameter and type codes.
+
+When called with an argument, this method is a mutator which sets the
+transmit antenna diameter and type codes.
+
+This datum is a byte, whose most-significant nybble encodes the antenna
+size as follows (in hexadecimal):
 
  0 - less than 1 meter
  1 - 3.9 meter
@@ -1196,17 +1289,27 @@ This information comes from bytes 41-44 of the record.
 =head2 vid
 
  print 'The VID is ', $utdf->vid(), "\n";
+ $utdf->vid( 86 );
 
-This method returns the Vehicle ID for the record.
+When called without an argument, this method is an accessor returning
+the vehicle ID.
+
+When called with an argument, this method is a mutator which sets the
+vehicle ID.
 
 This information comes from bytes 9-10 of the record.
 
 =head2 year
 
  printf "The year is %02d\n", $utdf->year();
+ $utdf->year( 8 );
 
-This method returns the year the measurement was taken, modulo 100 (i.e.
-the last two digits.
+When called without an argument, this method is an accessor returning
+the Gregorian year the data were taken, modulo 100 (i.e. the year number
+in the century).
+
+When called with an argument, this method is a mutator which sets the
+the year the data were taken.
 
 This information comes from byte 6 of the record.
 
