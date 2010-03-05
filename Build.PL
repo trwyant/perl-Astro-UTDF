@@ -1,6 +1,8 @@
 use strict;
 use warnings;
 
+use 5.006;
+
 use lib qw{ inc };
 
 use Module::Build;
@@ -16,13 +18,15 @@ my %args = (
     },
     requires => {
 	'Params::Util'	=> 0.25,
+	'Scalar::Util'	=> 0,
+	perl		=> 5.006,
     },
     license => 'perl',
 );
 
 $mbv >= 0.28 and $args{meta_merge} = {
     no_index => {
-	directory => [qw{inc t}],
+	directory => [qw{inc t xt}],
     },
 };
 
