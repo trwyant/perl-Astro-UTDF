@@ -138,12 +138,8 @@ sub data_interval {
 }
 
 sub doppler_count {
-    my ( $self, @args ) = @_;
-    @args and croak "doppler_count() may not be used as a mutator";
-    $self->enforce_validity()
-	and not $self->is_doppler_valid()
-	and return undef;	## no critic (ProhibitExplicitReturnUndef)
-    return $self->{doppler_count_hi} * 65536 + $self->{doppler_count_lo};
+    splice @_, 1, 0, doppler_count => 1, 'is_doppler_valid';
+    goto &_bash_6_bytes;
 }
 
 sub doppler_shift {
@@ -242,13 +238,8 @@ sub prior_record {
 }
 
 sub range_delay {
-    my ( $self, @args ) = @_;
-    @args and croak "range_delay() may not be used as a mutator";
-    $self->enforce_validity()
-	and not $self->is_range_valid()
-	and return undef;	## no critic (ProhibitExplicitReturnUndef)
-    return ( $self->{range_delay_hi} * 65536 +
-	$self->{range_delay_lo} ) / 256;
+    splice @_, 1, 0, range_delay => 256, 'is_range_valid';
+    goto &_bash_6_bytes;
 }
 
 sub range_rate {
@@ -409,6 +400,31 @@ foreach my $accessor ( qw{
     };
 }
 
+# Generic accessor/mutator for 6 byte values. The specific
+# accessor/mutator splices the constant part of the attribute name (the
+# part before '_hi' or '_lo', the factor (to multiply by for the
+# mutator, or divide by for the accessor), and the name of the valid-bit
+# routine (or undef if none) into the argument list right after the
+# object, and co-routines to this.
+sub _bash_6_bytes {
+    my ( $self, $attr, $factor, $validator, @args ) = @_;
+    if ( @args ) {
+	my $value = $factor * shift @args;
+	my $value_hi = floor( $value / 65536 );
+	my $value_lo = $value - $value_hi * 65536;
+	$self->{ $attr . '_hi' } = $value_hi | 0;	# Force integer
+	$self->{ $attr . '_lo' } = $value_lo | 0;	# Force integer
+	return $self;
+    } else {
+	$validator
+	    and $self->enforce_validity()
+	    and not $self->$validator()
+	    and return undef;	## no critic (ProhibitExplicitReturnUndef)
+	return ( $self->{ $attr . '_hi' } * 65536 +
+	    $self->{ $attr . '_lo' } ) / $factor;
+    }
+}
+
 # Generic accessor/mutator for angles. The specific accessor/mutator
 # splices the attribute name and the upper limit in radians onto the
 # argument list after the object, and co-routines to this (or calls it
@@ -552,7 +568,7 @@ This information comes from bytes 39-40 of the record.
 
 When called without an argument, this method is an accessor returning
 the antenna azimuth in radians, in the range 0 <= azimuth <= TWO_PI. If
-L</enforce_validity> is true, this method return C<undef> if
+L</enforce_validity> is true, this method returns C<undef> if
 L</is_angle_valid> (bit 2 (from 0) of the L</data_validity> attribute)
 is false.
 
@@ -634,11 +650,16 @@ the description of the given method's output.
 =head2 doppler_count
 
  print 'Doppler count is ', $utdf->doppler_count(), "\n";
+ $utdf->doppler_count( 123456789 );
 
-This method returns the accumulated doppler count for the observation.
-If L</enforce_validity> is true, this method will return C<undef>
-L</is_doppler_valid> (bit 1 (from 0) of the L</data_validity> attribute)
-is false.
+When called without an argument, this method is an accessor returning
+the Doppler count. If L</enforce_validity> is true, this method return
+C<undef> if L</is_doppler_valid> (bit 1 (from 0) of the
+L</data_validity> attribute) is false.
+
+When called with an argument, this method is a mutator which sets the
+doppler count to the number given in its argument.  Setting the doppler
+count does not set is_doppler_valid( 1 ); you must do this yourself.
 
 This information comes from bytes 33-38 of the record.
 
@@ -655,7 +676,7 @@ divided by the difference between the observation times of this record
 and the previous record. Accordingly, this information is not available
 for the first record in the file.
 
-If L</enforce_validity> is true, this method will return C<undef> if
+If L</enforce_validity> is true, this method returns C<undef> if
 L</is_doppler_valid> (bit 1 (from 0) of the L</data_validity> attribute)
 of either of the two records involved is false.
 
@@ -666,7 +687,7 @@ of either of the two records involved is false.
 
 When called without an argument, this method is an accessor returning
 the antenna elevation in radians, in the range -PI <= elevation < PI. If
-L</enforce_validity> is true, this method return C<undef> if
+L</enforce_validity> is true, this method returns C<undef> if
 L</is_angle_valid> (bit 2 (from 0) of the L</data_validity> attribute)
 is false.
 
@@ -917,10 +938,16 @@ that calls can be chained.
 
  print 'Range delay ', $utdf->range_delay(), " nanoseconds\n";
 
-This method returns the range delay (tracker to spacecraft to tracker)
-in nanoseconds.  If L</enforce_validity> is true, this method will
-return C<undef> if L</is_range_valid> (bit 0 (from 0) of the
-L</data_validity> attribute) is false.
+When called without an argument, this method is an accessor returning
+the range delay (tracker to spacecraft to tracker) in nanoseconds. If
+L</enforce_validity> is true, this method returns C<undef> if
+L</is_range_valid> (bit 0 (from 0) of the L</data_validity> attribute)
+is false.
+
+When called with an argument, this method is a mutator which sets the
+range delay to the number given (in nanoseconds) in its argument.
+Setting the range delay does not set is_range_valid( 1 ); you must do
+this yourself.
 
 According to the specification the value returned by this method
 includes transponder latency in the satellite, but not latency at the

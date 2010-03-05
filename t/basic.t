@@ -87,6 +87,7 @@ SKIP: {
 	    openhandle
 	    timegm
 	    timelocal
+	    _bash_6_bytes
 	    _bash_angle
 	    _bash_bit
 	    _bash_nybble
