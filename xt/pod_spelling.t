@@ -19,7 +19,7 @@ all_pod_files_spelling_ok ();
 1;
 __DATA__
 agc
-doppler
+Doppler
 hexified
 padid
 SRE

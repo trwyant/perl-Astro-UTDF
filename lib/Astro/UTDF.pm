@@ -519,7 +519,7 @@ __END__
 
 =head1 NAME
 
-Astro::UTDF - Represent Universal Tracking Data Format (UTDF) data
+Astro::UTDF - Manipulate Universal Tracking Data Format data
 
 =head1 SYNOPSIS
 
@@ -674,7 +674,7 @@ C<undef> if L</is_doppler_valid> (bit 1 (from 0) of the
 L</data_validity> attribute) is false.
 
 When called with an argument, this method is a mutator which sets the
-doppler count to the number given in its argument.  Setting the doppler
+Doppler count to the number given in its argument.  Setting the Doppler
 count does not set is_doppler_valid( 1 ); you must do this yourself.
 
 This information comes from bytes 33-38 of the record.
@@ -683,10 +683,10 @@ This information comes from bytes 33-38 of the record.
 
  print 'Doppler shift is ', $utdf->doppler_shift(), " Hertz\n";
 
-This method returns the doppler shift of the data, in Hertz.
+This method returns the Doppler shift of the data, in Hertz.
 
-This information is calculated from the biased doppler frequency, which
-in turn comes from the difference between the doppler counts of this
+This information is calculated from the biased Doppler frequency, which
+in turn comes from the difference between the Doppler counts of this
 record and the previous record (accounting for count wrap if needed),
 divided by the difference between the observation times of this record
 and the previous record. Accordingly, this information is not available
@@ -837,13 +837,13 @@ L<< $utdf->data_validity()|/data_validity >> is set.
  $utdf->is_doppler_valid( 1 );
 
 When called without an argument, this method is an accessor returning 1
-(i.e. true) if doppler counts are valid, and 0 (i.e. false) if not.
+(i.e. true) if Doppler counts are valid, and 0 (i.e. false) if not.
 
 When called with an argument, this method is a mutator which sets the
-doppler count validity to 1 if the argument is true and 0 if the
+Doppler count validity to 1 if the argument is true and 0 if the
 argument is false.
 
-The doppler counts are considered valid if bit 1 (from 0) of
+The Doppler counts are considered valid if bit 1 (from 0) of
 L<< $utdf->data_validity()|/data_validity >> is set.
 
 =head2 is_range_valid
