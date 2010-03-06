@@ -21,7 +21,7 @@ i_can_ok( 'doppler_shift' );
 i_can_ok( 'elevation' );
 i_can_ok( 'enforce_validity' );
 i_can_ok( 'frequency_band' );
-i_can_ok( 'frequency_band_and_transmission_type' ),
+i_can_ok( 'frequency_band_and_transmission_type' );
 i_can_ok( 'front' );
 i_can_ok( 'hex_record' );
 i_can_ok( 'is_angle_valid' );
@@ -103,14 +103,14 @@ SKIP: {
 
     my %checked;
 
-    sub i_can_ok {
+    sub i_can_ok {	## no critic (RequireArgUnpacking)
 	my ( $method ) = @_;
 	$checked{$method} = 1;
 	@_ = ( Astro::UTDF->can( $method ), "Astro::UTDF->can( '$method' )" );
 	goto &ok;
     }
 
-    sub thats_all_methods {
+    sub thats_all_methods {	## no critic (RequireArgUnpacking)
 	my @imports = @_;
 	foreach my $method ( @imports ) {
 	    $checked{$method} = 1;

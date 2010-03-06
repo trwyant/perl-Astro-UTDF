@@ -97,11 +97,13 @@ sub ranging_valid {
     return ( $self->{ranging_valid} = ( $status_byte & 0x01 ? 1 : 0 ) );
 }
 
-sub time : method {
+sub time_since_start_of_year {
     my ( $self ) = @_;
-    exists $self->{time} and return $self->{time};
+    exists $self->{time_since_start_of_year}
+	and return $self->{time_since_start_of_year};
     my $utdf_uncoded = $self->{hex_data};
-    return ( $self->{time} = sprintf("%d", hex(substr($utdf_uncoded, 20, 8))) );
+    return ( $self->{time_since_start_of_year} =
+	sprintf("%d", hex(substr($utdf_uncoded, 20, 8))) );
 }
 
 Readonly::Scalar my $lightspeed => 299792.458;
@@ -131,7 +133,7 @@ sub doppler
 #TW     my $freq = (sprintf("%d", hex(substr($utdf_uncoded, 80, 8)))) * 10;
 	my $freq = $self->frequency();		#TW
 #TW     my $time         = sprintf("%d", hex(substr($utdf_uncoded, 20, 8)));
-	my $time         = $self->time();
+	my $time         = $self->time_since_start_of_year();
 #TW     my $packed_words = sprintf("%d", hex(substr($utdf_uncoded, 96, 2)));
 #TW     my $doppler_mode = sprintf("%b", $packed_words);
 #TW     $doppler_mode = oct("0b$doppler_mode");
@@ -153,7 +155,7 @@ sub doppler
 	my $previous_object = $self->previous_object()	#TW
 	    or return;					#TW
 	my $previous_fd = $previous_object->doppler_count();	#TW
-	my $previous_time = $previous_object->time();	#TW
+	my $previous_time = $previous_object->time_since_start_of_year();	#TW
 
 #        my $rr = (
 #             -$lightspeed * (
@@ -164,6 +166,9 @@ sub doppler
         #my $rr = ( -$lightspeed * ((($fd - $previous_fd) / ($time - $previous_time)) - 240000000)) / (2 * $freq * (240 / 221) * 1000) * -1;
         my $rr = ( $lightspeed * ((($fd - $previous_fd) / ($time - $previous_time)) - 240000000)) / (2 * $freq * (240 / 221) * 1000);
 	return sprintf '% 21.14f', -$rr;	#TW
+
+=begin comment
+
         my $rr_first = $1 if ($rr =~ /(.[0-9]*)\.\d*/);
         my $rr_last  = $1 if ($rr =~ /.\d*\.(\d*)/);
         $rr_last = "$rr_last" . "00000000000000";
@@ -173,6 +178,11 @@ sub doppler
         $previous_time = $time;
 
         return sprintf "% 6d.%08s", $rr_first, $rr_last;
+
+=end comment
+
+=cut
+
     }
 }    # end DOPPLER
 
@@ -210,6 +220,10 @@ sub ranging
         my $mellom = ($lightspeed / 512000000000000)
             * $range_value;    # Using correct lightspeed
 
+	return $mellom;	# TW
+
+=begin comment
+
         my $range_km = $1 if ($mellom =~ /([0-9]*).[0-9]*/);
         $range_km = "000000" . "$range_km";
         $range_km = $1 if ($range_km =~ /\d*(\d{6})/);
@@ -218,6 +232,11 @@ sub ranging
         $range_m = $1 if ($range_m =~ /(\d{14})/);
 
         return sprintf "%6s.%014s", $range_km, $range_m;
+
+=end comment
+
+=cut
+
 
     }
 }    # end RANGING
@@ -331,7 +350,7 @@ of in-situ calculation by accessor methods are by Tom Wyant.
 This method returns a true value if the ranging datum of the record is
 valid, and false otherwise. It is by Tom Wyant.
 
-=head2 time
+=head2 time_since_start_of_year
 
 This method returns the time since the start of the year, in seconds.
 The guts are by Vidar Hansen, and the o-o boiler plate by Tom Wyant.
