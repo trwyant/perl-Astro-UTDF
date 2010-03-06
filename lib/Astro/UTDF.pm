@@ -196,6 +196,16 @@ sub hex_record {
     }
 }
 
+sub is_angle_corrected_for_misalignment {
+    splice @_, 1, 0, data_validity => 3;
+    goto &_bash_bit;
+}
+
+sub is_angle_corrected_for_refraction {
+    splice @_, 1, 0, data_validity => 4;
+    goto &_bash_bit;
+}
+
 sub is_angle_valid {
     splice @_, 1, 0, data_validity => 2;
     goto &_bash_bit;
@@ -829,6 +839,48 @@ false.
 
 The angle data are considered valid if bit 2 (from 0) of
 L<< $utdf->data_validity()|/data_validity >> is set.
+
+=head2 is_angle_corrected_for_misalignment
+
+ print 'Angle data are ', (
+     $utdf->is_angle_corrected_for_misalignment() ?
+     '' : 'not ' ), " corrected for mount misalignment\n";
+ $utdf->is_angle_corrected_for_misalignment( 1 );
+
+When called without an argument, this method is an accessor returning 1
+(i.e. true) if angles are corrected for antenna mount misalignment, and
+0 (i.e. false) if not.
+
+When called with an argument, this method is a mutator which sets the
+angle correction for mount misalignment to 1 if the argument is true and
+0 if the argument is false. Note that nothing is actually done to the
+angle data by setting this bit - it merely asserts (rightly or wrongly)
+that the data in the object have been corrected.
+
+The angle data are considered corrected for antenna mount misalignment
+if bit 3 (from 0) of L<< $utdf->data_validity()|/data_validity >> is
+set.
+
+=head2 is_angle_corrected_for_refraction
+
+ print 'Angle data are ', (
+     $utdf->is_angle_corrected_for_refraction() ?
+     '' : 'not ' ), " corrected for tropospheric refraction\n";
+ $utdf->is_angle_corrected_for_refraction( 1 );
+
+When called without an argument, this method is an accessor returning 1
+(i.e. true) if angles are corrected for tropospheric refraction, and
+0 (i.e. false) if not.
+
+When called with an argument, this method is a mutator which sets the
+angle correction for tropospheric refraction to 1 if the argument is true
+and 0 if the argument is false. Note that nothing is actually done to
+the angle data by setting this bit - it merely asserts (rightly or
+wrongly) that the data in the object have been corrected.
+
+The angle data are considered corrected for tropospheric refraction
+if bit 4 (from 0) of L<< $utdf->data_validity()|/data_validity >> is
+set.
 
 =head2 is_doppler_valid
 

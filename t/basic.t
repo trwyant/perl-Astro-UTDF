@@ -5,7 +5,7 @@ use warnings;
 
 use Test::More 0.40;
 
-plan ( tests => 48 );
+plan ( tests => 50 );
 
 require_ok('Astro::UTDF');
 
@@ -25,6 +25,8 @@ i_can_ok( 'frequency_band_and_transmission_type' );
 i_can_ok( 'front' );
 i_can_ok( 'hex_record' );
 i_can_ok( 'is_angle_valid' );
+i_can_ok( 'is_angle_corrected_for_misalignment' );
+i_can_ok( 'is_angle_corrected_for_refraction' );
 i_can_ok( 'is_doppler_valid' );
 i_can_ok( 'is_range_valid' );
 i_can_ok( 'is_last_frame' );
