@@ -50,8 +50,12 @@ returns( $utdf, is_angle_corrected_for_misalignment => 0,
     'is_angle_corrected_for_misalignment' );
 returns( $utdf, is_angle_corrected_for_refraction => 0,
     'is_angle_corrected_for_refraction' );
+returns( $utdf, is_destruct_doppler => 0, 'is_destruct_doppler' );
 returns( $utdf, is_doppler_valid => 1, 'is_doppler_valid' );
+returns( $utdf, is_range_corrected_for_refraction => 0,
+    'is_range_corrected_for_refraction' );
 returns( $utdf, is_range_valid => 0, 'is_range_valid' );
+returns( $utdf, is_side_lobe => 0, 'is_side_lobe' );
 returns( $utdf, is_last_frame => 0, 'is_last_frame' );
 returns( $utdf, measurement_time => 1260236511, 'measurement_time' );
 returns( $utdf, microseconds_of_year => 0, 'microseconds_of_year' );
@@ -118,8 +122,11 @@ round_trip( frequency_band_and_transmission_type => 68 );
 round_trip( is_angle_valid => 1 );
 round_trip( is_angle_corrected_for_misalignment => 0 );
 round_trip( is_angle_corrected_for_refraction => 1 );
+round_trip( is_destruct_doppler => 0 );
 round_trip( is_doppler_valid => 0 );
+round_trip( is_range_corrected_for_refraction => 1 );
 round_trip( is_range_valid => 1 );
+round_trip( is_side_lobe => 0 );
 round_trip( is_last_frame => 1 );
 
 # TODO measurement_time

@@ -5,7 +5,7 @@ use warnings;
 
 use Test::More 0.40;
 
-plan ( tests => 50 );
+plan ( tests => 53 );
 
 require_ok('Astro::UTDF');
 
@@ -27,8 +27,11 @@ i_can_ok( 'hex_record' );
 i_can_ok( 'is_angle_valid' );
 i_can_ok( 'is_angle_corrected_for_misalignment' );
 i_can_ok( 'is_angle_corrected_for_refraction' );
+i_can_ok( 'is_destruct_doppler' );
 i_can_ok( 'is_doppler_valid' );
+i_can_ok( 'is_range_corrected_for_refraction' );
 i_can_ok( 'is_range_valid' );
+i_can_ok( 'is_side_lobe' );
 i_can_ok( 'is_last_frame' );
 i_can_ok( 'measurement_time' );
 i_can_ok( 'microseconds_of_year' );

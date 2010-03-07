@@ -211,6 +211,11 @@ sub is_angle_valid {
     goto &_bash_bit;
 }
 
+sub is_destruct_doppler {
+    splice @_, 1, 0, data_validity => 6;
+    goto &_bash_bit;
+}
+
 sub is_doppler_valid {
     splice @_, 1, 0, data_validity => 1;
     goto &_bash_bit;
@@ -218,6 +223,16 @@ sub is_doppler_valid {
 
 sub is_range_valid {
     splice @_, 1, 0, data_validity => 0;
+    goto &_bash_bit;
+}
+
+sub is_range_corrected_for_refraction {
+    splice @_, 1, 0, data_validity => 5;
+    goto &_bash_bit;
+}
+
+sub is_side_lobe {
+    splice @_, 1, 0, data_validity => 7;
     goto &_bash_bit;
 }
 
@@ -882,6 +897,22 @@ The angle data are considered corrected for tropospheric refraction
 if bit 4 (from 0) of L<< $utdf->data_validity()|/data_validity >> is
 set.
 
+=head2 is_destruct_doppler
+
+ print 'Destruct Doppler was ', (
+     $utdf->is_destruct_doppler() ? '' : 'not' ), " used\n";
+ $utdf->is_destruct_doppler( 1 );
+
+When called without an argument, this method is an accessor returning 1
+(i.e. true) if destruct Doppler was used, and 0 (i.e. false) if not.
+
+When called with an argument, this method is a mutator which sets the
+destruct Doppler use to 1 if the argument is true and 0 if the argument
+is false.
+
+Destruct Doppler is considered used if bit 6 (from 0) of
+L<< $utdf->data_validity()|/data_validity >> is set.
+
 =head2 is_doppler_valid
 
  print 'Doppler data are ', (
@@ -898,6 +929,28 @@ argument is false.
 The Doppler counts are considered valid if bit 1 (from 0) of
 L<< $utdf->data_validity()|/data_validity >> is set.
 
+=head2 is_range_corrected_for_refraction
+
+ print 'Range and Doppler data are ', (
+     $utdf->is_range_corrected_for_refraction() ?
+     '' : 'not ' ), " corrected for tropospheric refraction\n";
+ $utdf->is_range_corrected_for_refraction( 1 );
+
+When called without an argument, this method is an accessor returning 1
+(i.e. true) if the range and Doppler data are corrected for tropospheric
+refraction, and 0 (i.e. false) if not.
+
+When called with an argument, this method is a mutator which sets the
+range and Doppler correction for tropospheric refraction to 1 if the
+argument is true and 0 if the argument is false. Note that nothing is
+actually done to the range and Doppler data by setting this bit - it
+merely asserts (rightly or wrongly) that the data in the object have
+been corrected.
+
+The range and Doppler data are considered corrected for tropospheric
+refraction if bit 5 (from 0) of
+L<< $utdf->data_validity()|/data_validity >> is set.
+
 =head2 is_range_valid
 
  print 'Range data are ', (
@@ -912,6 +965,23 @@ range delay validity to 1 if the argument is true and 0 if the argument
 is false.
 
 The range delay are considered valid if bit 0 (from 0) of
+L<< $utdf->data_validity()|/data_validity >> is set.
+
+=head2 is_side_lobe
+
+ print 'Data are ', (
+     $utdf->is_side_lobe() ?
+     '' : 'not ' ), "side lobe data\n";
+ $utdf->is_side_lobe( 1 );
+
+When called without an argument, this method is an accessor returning 1
+(i.e. true) if the data are side lobe data, and 0 (i.e. false) if not.
+
+When called with an argument, this method is a mutator which sets the
+side lobe data indicator to 1 if the argument is true and 0 if the
+argument is false.
+
+The data are considered side lobe data if bit 5 (from 0) of
 L<< $utdf->data_validity()|/data_validity >> is set.
 
 =head2 is_last_frame
