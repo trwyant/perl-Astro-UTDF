@@ -128,9 +128,7 @@ round_trip( is_range_corrected_for_refraction => 1 );
 round_trip( is_range_valid => 1 );
 round_trip( is_side_lobe => 0 );
 round_trip( is_last_frame => 1 );
-
-# TODO measurement_time
-
+round_trip( measurement_time => 1238544000 );	# 01-Apr-2009 00:00:00
 round_trip( microseconds_of_year => 314159 );
 round_trip( mode => 12 );
 round_trip( range_delay => 9876543210 );

@@ -243,11 +243,20 @@ sub is_last_frame {
 
 sub measurement_time {
     my ( $self, @args ) = @_;
-    @args and croak "measurement_time() may not be used as a mutator";
-    my $yr = $self->year();
-    $yr < 70 and $yr += 100;
-    return timegm( 0, 0, 0, 1, 0, $yr ) + $self->seconds_of_year() +
-	$self->microseconds_of_year() / 1_000_000;
+    if ( @args ) {
+	my $time = floor( $args[0] );
+	my $microseconds = floor( ( $args[0] - $time ) * 1_000_000 + 0.5);
+	my @cald = gmtime $time;
+	my $year = $cald[5] % 100;
+	my $seconds = $time - timegm( 0, 0, 0, 1, 0, $cald[5] );
+	return $self->year( $year )->seconds_of_year( $seconds
+	    )->microseconds_of_year( $microseconds );
+    } else {
+	my $yr = $self->year();
+	$yr < 70 and $yr += 100;
+	return timegm( 0, 0, 0, 1, 0, $yr ) + $self->seconds_of_year() +
+	    $self->microseconds_of_year() / 1_000_000;
+    }
 }
 
 sub prior_record {
@@ -1004,11 +1013,17 @@ The last-frame bit is bit 11 (from 0) of L</tracker_type_and_data_rate>.
  print 'Measured at ',
      scalar gmtime $utdf->measurement_time(),
      " GMT\n";
+ $utdf->measurement_time( 1238544000 );
 
-This method returns the time the measurement was taken as a Perl time.
+When called without an argument, this method is an accessor returning
+the Perl time the measurement was made.
 
-This information is constructed from the year field, the seconds_of_year
-field, and the microseconds_of_year field.
+When called with an argument, this method is a mutator which sets the
+time the measurement was made to the Perl time represented by the
+argument.
+
+This information is constructed from the L</year> field, the
+L</seconds_of_year> field, and the L</microseconds_of_year> field.
 
 =head2 microseconds_of_year
 
