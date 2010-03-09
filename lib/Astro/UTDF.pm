@@ -396,8 +396,18 @@ sub tracker_type {
 
 sub tracking_mode {
     my ( $self, @args ) = @_;
-    @args and croak "tracking_mode() may not be used as a mutator";
-    return ( $self->{mode} & 0x000C ) >> 2;
+    # This would be a delegation to _bash_quarter if there were more
+    # than one two-bit field.
+    my $attr = 'mode';
+    my $shift = 2;
+    my $mask = 0x03 << $shift;
+    if ( @args ) {
+	$self->{$attr} &= ~ $mask;
+	$self->{$attr} |= ( $args[0] & 0x03 ) << $shift;
+	return $self;
+    } else {
+	return ( $self->{mode} & $mask ) >> $shift;
+    }
 }
 
 sub transmission_type {
@@ -572,11 +582,14 @@ This class represents a record from a Universal Tracking Data Format
 L<< Astro::UTDF->slurp()|/slurp >> method, which returns a list of
 Astro::UTDF objects.
 
-Most of the following methods are accessors of some sort. Some of the
-accessors will also behave as mutators if you pass a new value as an
-argument. Validation is minimal to non-existent.
-
 =head1 METHODS
+
+Most of the following methods are accessor/mutators of some sort. When
+called with no argument, they return the desired value. When called with
+an argument, they set the value from the argument, and return the object
+so that calls can be chained. Validation is minimal to non-existent, and
+data range problems seem to be most likely to show up when calling
+L<< $utdf->raw_record()|/raw_record >> as an accessor.
 
 This class supports the following public methods:
 
@@ -1340,9 +1353,17 @@ This information comes from bytes 53-54 of the record.
 =head2 tracking_mode
 
  print 'The tracking mode is ', $utdf->tracking_mode(), "\n";
+ $utdf->tracking_mode( 2 );
 
-This method returns the tracking mode. The data come from bits 2-3 of
-the L</mode> field, and the encoding is documented there.
+When called without an argument, this method is an accessor returning
+the tracking mode as a number in the range 0-3.
+
+When called with an argument, this method is a mutator which sets the
+tracking mode to a number in the range 0-3. This number comes from the
+low 2 bits of the argument.
+
+The tracking mode comes from bits 2-3 of the L</mode> field, and the
+encoding is documented there.
 
 =head2 transmission_type
 

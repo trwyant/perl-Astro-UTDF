@@ -140,9 +140,7 @@ round_trip( sic => 86 );
 round_trip( tdrss_only => 'Hello, world!' . pack 'H*', '0000000000' );
 round_trip( tracker_type => 9 );
 round_trip( tracker_type_and_data_rate => 2 );
-
-# TODO tracking_mode
-
+round_trip( tracking_mode => 1 );
 round_trip( transmission_type => 10 );
 round_trip( transmit_antenna_padid => 42 );
 round_trip( transmit_antenna_type => 65 );
