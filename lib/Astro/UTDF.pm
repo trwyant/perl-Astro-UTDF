@@ -417,8 +417,12 @@ sub transmission_type {
 
 sub transmit_frequency {
     my ( $self, @args ) = @_;
-    @args and croak "transmit_frequency() may not be used as a mutator";
-    return $self->{transmit_frequency} * 10;
+    if ( @args ) {
+	$self->{transmit_frequency} = floor( ( $args[0] + 5 ) / 10 );
+	return $self;
+    } else {
+	return $self->{transmit_frequency} * 10;
+    }
 }
 
 # Generate all the simple accessors. These just return the value of
@@ -1440,7 +1444,11 @@ This information comes from byte 45 of the record.
  print 'The transmit frequency is ',
      $utdf->transmit_frequency(), " Hertz\n";
 
-This method returns the transmit frequency in Hertz.
+When called without an argument, this method is an accessor which
+returns the transmit frequency in Hertz.
+
+When called with an argument, this method is a mutator which sets the
+transmit frequency in Hertz.
 
 This information comes from bytes 41-44 of the record.
 

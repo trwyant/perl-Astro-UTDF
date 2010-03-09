@@ -144,9 +144,7 @@ round_trip( tracking_mode => 1 );
 round_trip( transmission_type => 10 );
 round_trip( transmit_antenna_padid => 42 );
 round_trip( transmit_antenna_type => 65 );
-
-# TODO transmit_frequency
-
+round_trip( transmit_frequency => 2048000000 );
 round_trip( vid => 99 );
 round_trip( year => 8 );
 
