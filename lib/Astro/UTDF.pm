@@ -164,7 +164,7 @@ sub doppler_shift {
 	$count = - $count;
     }
     $count < 0 and $count += 2 << 48;
-    return ( $count / $deltat - 240_000_000 ) / $self->_factor_M();
+    return ( $count / $deltat - 240_000_000 ) / $self->factor_M();
 }
 
 sub elevation {
@@ -179,6 +179,40 @@ sub enforce_validity {
 	return $self;
     } else {
 	return $self->{enforce_validity};
+    }
+}
+
+# Return the factor K, which is documented as 240/221 for S-band or 1
+# for VHF. Since we know we can't count on the frequency_band, we
+# compute this ourselves, making the break at the bottom of the S band.
+
+sub factor_K {
+    my ( $self, @args ) = @_;
+    if ( @args ) {
+	$self->{factor_K} = $args[0];
+	return $self;
+    } else {
+	return ( defined $self->{factor_K} ? $self->{factor_K} :
+	    ( $self->{factor_K} =
+		$self->transmit_frequency() >= 2_000_000_000 ?
+		240 / 221 : 1 ) );
+    }
+}
+
+# Return the factor M, which is documented as 1000 for S-band or 100 for
+# K-band. Since we know we can't count on the frequency_band, we
+# compute this ourselves, making the break at the bottom of the Ku band.
+
+sub factor_M {
+    my ( $self, @args ) = @_;
+    if ( @args ) {
+	$self->{factor_M} = $args[0];
+	return $self;
+    } else {
+	return ( defined $self->{factor_M} ? $self->{factor_M} :
+	    ( $self->{factor_M} =
+		$self->transmit_frequency() >= 12_000_000_000 ?
+		100 : 1000 ) );
     }
 }
 
@@ -285,7 +319,7 @@ sub range_rate {
     if ( defined ( my $shift = $self->doppler_shift() ) ) {
 	return (
 	    - SPEED_OF_LIGHT / ( 2 * $self->transmit_frequency() *
-		$self->_factor_K() ) * $shift
+		$self->factor_K() ) * $shift
 	);
     } else {
 	# If I simply returned as PBP would have me do, this method
@@ -543,24 +577,6 @@ sub _bash_nybble {
     }
 }
 
-# Return the factor M, which is documented as 1000 for S-band or 100 for
-# K-band. Since we know we can't count on the frequency_band, we
-# compute this ourselves, making the break at the bottom of the Ku band.
-
-sub _factor_M {
-    my ( $self ) = @_;
-    return $self->transmit_frequency() >= 12_000_000_000 ? 100 : 1000;
-}
-
-# Return the factor K, which is documented as 240/221 for S-band or 1
-# for VHF. Since we know we can't count on the frequency_band, we
-# compute this ourselves, making the break at the bottom of the S band.
-
-sub _factor_K {
-    my ( $self ) = @_;
-    return $self->transmit_frequency() >= 2_000_000_000 ? 240 / 221 : 1;
-}
-
 1;
 
 __END__
@@ -747,6 +763,18 @@ If L</enforce_validity> is true, this method returns C<undef> if
 L</is_doppler_valid> (bit 1 (from 0) of the L</data_validity> attribute)
 of either of the two records involved is false.
 
+Assuming both Doppler counts are valid, the Doppler shift in Hertz is
+
+ +-               -+
+ | N1 - N0         |
+ | ------- - 2.4e8 | / M
+ | T1 - T0         |
+ +-               -+
+
+where the C<N>s are the Doppler-plus-bias counts, the C<T>s are the
+corresponding times, and the C<M> is the frequency-dependent factor
+returned by the L</factor_M> method.
+
 =head2 elevation
 
  print 'Elevation is ', $utdf->elevation(), " radians\n";
@@ -785,6 +813,34 @@ methods will ignore the validity bit and return whatever value the
 attribute has.
 
 This attribute defaults to C<undef> (that is, false).
+
+=head2 factor_K
+
+ print "Factor M is ", $utdf->factor_K(), "\n";
+ $utdf->factor_K( 100 );
+
+When called without an argument, this method is an accessor, returning
+the factor C<K> to be used in the calculation of L</range_rate>.
+
+When called with an argument, this method is a mutator, specifying the
+value of factor C<K> to be used in the calculation of L</range_rate>.
+
+By default, this is 240/221 if the frequency is >= 2e9 Hertz, and 1
+otherwise. Setting the value to C<undef> restores the default.
+
+=head2 factor_M
+
+ print "Factor M is ", $utdf->factor_M(), "\n";
+ $utdf->factor_M( 100 );
+
+When called without an argument, this method is an accessor, returning
+the factor C<M> to be used in the calculation of L</doppler_shift>.
+
+When called with an argument, this method is a mutator, specifying the
+value of factor C<M> to be used in the calculation of L</doppler_shift>.
+
+By default, this is 100 if the frequency is >= 1.2e10 Hertz, and 1000
+otherwise. Setting the value to C<undef> restores the default.
 
 =head2 frequency_band
 
@@ -1153,8 +1209,16 @@ This information comes from bytes 27-32 of the record.
 
 This method returns the range rate, or velocity in recession.
 
-This is calculated from the Doppler shift, and will be C<undef> if
+This is calculated from the L</doppler_shift>, and will be C<undef> if
 L</doppler_shift> returns C<undef>.
+
+Assuming the Doppler shift is valid, the range rate is calculated as
+
+ -cD/(2FK)
+
+where C<c> is the speed of light, C<D> is the L</doppler_shift>, C<F> is
+the transmission frequency, and C<K> is a frequency-dependent factor
+returned by L</factor_K>.
 
 =head2 raw_record
 

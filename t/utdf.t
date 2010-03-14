@@ -38,6 +38,8 @@ decode ( $utdf, transmission_type => 'test', 'decode transmission_type' );
 returns( $utdf, doppler_count => 43701446204, 'doppler_count' );
 returns( $utdf, doppler_shift => 40131.725, 'doppler_shift' );
 returns( $utdf, elevation => 0, 'elevation' );
+returns( $utdf, { sprintf => '%.8f' }, factor_K => 1.08597285, 'factor_K' );
+returns( $utdf, factor_M => 1000, 'factor_M' );
 returns( $utdf, frequency_band => 0, 'frequency_band' );
 returns( $utdf, frequency_band_and_transmission_type => 0,
     'frequency_band_and_transmission_type' );
@@ -100,6 +102,17 @@ SKIP: {
     returns( $clone, doppler_count => 43701446204, 'doppler_count (valid)' );
     returns( $clone, elevation => undef, 'elevation (invalid)' );
     returns( $clone, range_delay => undef, 'range_delay (invalid)' );
+
+    $clone->factor_M( 100 );
+    returns( $clone, factor_M => 100, 'factor_M changed to 100' );
+    $clone->factor_M( undef );
+    returns( $clone, factor_M => 1000, 'factor_M defaulted to 1000' );
+
+    $clone->factor_K( 1 );
+    returns( $clone, factor_K => 1, 'factor_K changed to 1' );
+    $clone->factor_K( undef );
+    returns( $utdf, { sprintf => '%.8f' }, factor_K => 1.08597285,
+	'factor_K defaulted to 240/221' );
 
 }
 

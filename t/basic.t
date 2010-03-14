@@ -5,7 +5,7 @@ use warnings;
 
 use Test::More 0.40;
 
-plan ( tests => 53 );
+plan ( tests => 55 );
 
 require_ok('Astro::UTDF');
 
@@ -20,6 +20,8 @@ i_can_ok( 'doppler_count' );
 i_can_ok( 'doppler_shift' );
 i_can_ok( 'elevation' );
 i_can_ok( 'enforce_validity' );
+i_can_ok( 'factor_K' );
+i_can_ok( 'factor_M' );
 i_can_ok( 'frequency_band' );
 i_can_ok( 'frequency_band_and_transmission_type' );
 i_can_ok( 'front' );
@@ -97,8 +99,6 @@ SKIP: {
 	    _bash_angle
 	    _bash_bit
 	    _bash_nybble
-	    _factor_K
-	    _factor_M
 	    _INSTANCE
 	    _static
 	} );
