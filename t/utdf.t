@@ -70,6 +70,7 @@ returns( $utdf, is_last_frame => 0, 'is_last_frame' );
 returns( $utdf, measurement_time => 1260236511, 'measurement_time' );
 returns( $utdf, microseconds_of_year => 0, 'microseconds_of_year' );
 returns( $utdf, mode => 544, 'mode' );
+returns( $utdf, range => 0, 'range' );
 returns( $utdf, range_rate => -2.70363808094889, 'range_rate' );
 returns( $utdf, range_delay => 0, 'range_delay' );
 hexify ( $utdf, rear => '040f0f', 'rear' );
@@ -96,6 +97,7 @@ returns( $utdf, transmit_antenna_geometry_code => 0,
 returns( $utdf, transmit_antenna_padid => 87, 'transmit_antenna_padid' );
 returns( $utdf, transmit_antenna_type => 64, 'transmit_antenna_type' );
 returns( $utdf, transmit_frequency => 2048854000, 'transmit_frequency' );
+returns( $utdf, transponder_latency => 0, 'transponder_latency' );
 returns( $utdf, vid => 1, 'vid (Vehicle ID)' );
 returns( $utdf, year => 9, 'year' );
 

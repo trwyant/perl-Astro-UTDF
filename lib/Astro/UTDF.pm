@@ -347,6 +347,18 @@ sub prior_record {
     }
 }
 
+sub range {
+    my ( $self, @args ) = @_;
+    if ( @args ) {
+	croak "range() may not be used as a mutator";
+    } else {
+	defined( my $range_delay = $self->range_delay() )
+	    or return undef;
+	return ( ( $range_delay - $self->transponder_latency() ) *
+	    SPEED_OF_LIGHT / 2_000_000_000 );
+    }
+}
+
 sub range_delay {
     splice @_, 1, 0, range_delay => 256, 'is_range_valid';
     goto &_bash_6_bytes;
@@ -407,12 +419,13 @@ sub range_rate {
 	}
     }
 
-    my $static;
+    my $static = {};
     @$static{ @utdf_fields } = ( 0 ) x scalar @utdf_fields;
     $static->{front} = pack 'H*', '0d0a01';
     $static->{router} = ' ';
     $static->{tdrss_only} = pack( 'H*', '00' ) x 18;
     $static->{rear} = pack 'H*', '040f0f';
+    $static->{transponder_latency} = 0;
     bless $static, __PACKAGE__;
 
     sub _static {
@@ -537,6 +550,8 @@ foreach my $attribute ( qw{
     tracker_type_and_data_rate
     tdrss_only
     rear
+
+    transponder_latency
 } ) {
     no strict qw{ refs };
     *$attribute = sub {
@@ -1243,6 +1258,17 @@ prior UTDF record. The argument must be an Astro::UTDF object or
 C<undef>. When called as an accessor, this method returns its object, so
 that calls can be chained.
 
+=head2 range
+
+ print 'Range is ', $utdf->range(), " kilometers\n";
+
+When called without an argument, this method is an accessor which
+returms the range to the satellite in kilometers, calculated as the
+speed of light (in kilometers per nanosecond) times half the difference
+between the L</range_delay> and the L</transponder_latency>.
+
+When called with an argument, this method croaks.
+
 =head2 range_delay
 
  print 'Range delay ', $utdf->range_delay(), " nanoseconds\n";
@@ -1636,6 +1662,21 @@ When called with an argument, this method is a mutator which sets the
 transmit frequency in Hertz.
 
 This information comes from bytes 41-44 of the record.
+
+=head2 transponder_latency
+
+ print 'The transponder latency is ',
+     $utdf->transponder_latency(), " nanoseconds\n";
+ $utdf->transponder_latency( 20 );
+
+When called without an argument, this method is an accessor which
+returns the satellite transponder latency in nanoseconds.
+
+When called with an argument, this method is a mutator which sets the
+satellite transponder latency in nanoseconds.
+
+This information does not come from the UTDF record, but is deducted
+from the L</range_delay> when computing the L</range>. It defaults to 0.
 
 =head2 vid
 

@@ -5,7 +5,7 @@ use warnings;
 
 use Test::More 0.40;
 
-plan ( tests => 59 );
+plan ( tests => 61 );
 
 require_ok('Astro::UTDF');
 
@@ -39,6 +39,7 @@ i_can_ok( 'measurement_time' );
 i_can_ok( 'microseconds_of_year' );
 i_can_ok( 'mode' );
 i_can_ok( 'prior_record' );
+i_can_ok( 'range' );
 i_can_ok( 'range_delay' );
 i_can_ok( 'range_rate' );
 i_can_ok( 'raw_record' );
@@ -61,6 +62,7 @@ i_can_ok( 'transmit_antenna_geometry_code' );
 i_can_ok( 'transmit_antenna_padid' );
 i_can_ok( 'transmit_antenna_type' );
 i_can_ok( 'transmit_frequency' );
+i_can_ok( 'transponder_latency' );
 i_can_ok( 'vid' );
 i_can_ok( 'year' );
 
