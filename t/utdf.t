@@ -33,8 +33,16 @@ decode ( $utdf, mode => '0x0220', 'decode mode' );
 decode ( $utdf, raw_record =>
     '0d0a014141090cb2000101c1a75f000000000000000000000000000000000000000a2ccf263c00000c364d9840574057022002000100000000000000000000000000000000000000040f0f',
     'decode raw_record' );
+decode ( $utdf, receive_antenna_diameter_code => '12 meters',
+    'decode receive_antenna_diameter_code' );
 decode ( $utdf, tracking_mode => 'autotrack', 'decode tracking_mode' );
+decode ( $utdf, receive_antenna_geometry_code => 'az-el',
+    'decode receive_antenna_geometry_code' );
 decode ( $utdf, transmission_type => 'test', 'decode transmission_type' );
+decode ( $utdf, transmit_antenna_diameter_code => '12 meters',
+    'decode transmit_antenna_diameter_code' );
+decode ( $utdf, transmit_antenna_geometry_code => 'az-el',
+    'decode transmit_antenna_geometry_code' );
 returns( $utdf, doppler_count => 43701446204, 'doppler_count' );
 returns( $utdf, doppler_shift => 40131.725, 'doppler_shift' );
 returns( $utdf, elevation => 0, 'elevation' );
@@ -66,6 +74,10 @@ returns( $utdf, range_rate => -2.70363808094889, 'range_rate' );
 returns( $utdf, range_delay => 0, 'range_delay' );
 hexify ( $utdf, rear => '040f0f', 'rear' );
 returns( $utdf, receive_antenna_padid => 87, 'receive_antenna_padid' );
+returns( $utdf, receive_antenna_diameter_code => 4,
+    'receive_antenna_diameter_code' );
+returns( $utdf, receive_antenna_geometry_code => 0,
+    'receive_antenna_geometry_code' );
 returns( $utdf, receive_antenna_type => 64, 'receive_antenna_type' );
 returns( $utdf, router => 'AA', 'router' );
 returns( $utdf, seconds_of_year => 29468511, 'seconds_of_year' );
@@ -77,6 +89,10 @@ returns( $utdf, tracker_type_and_data_rate => 256,
     'tracker_type_and_data_rate' );
 returns( $utdf, tracking_mode => 0, 'tracking_mode' );
 returns( $utdf, transmission_type => 0, 'transmission_type' );
+returns( $utdf, transmit_antenna_diameter_code => 4,
+    'transmit_antenna_diameter_code' );
+returns( $utdf, transmit_antenna_geometry_code => 0,
+    'transmit_antenna_geometry_code' );
 returns( $utdf, transmit_antenna_padid => 87, 'transmit_antenna_padid' );
 returns( $utdf, transmit_antenna_type => 64, 'transmit_antenna_type' );
 returns( $utdf, transmit_frequency => 2048854000, 'transmit_frequency' );
@@ -145,6 +161,8 @@ round_trip( measurement_time => 1238544000 );	# 01-Apr-2009 00:00:00
 round_trip( microseconds_of_year => 314159 );
 round_trip( mode => 12 );
 round_trip( range_delay => 9876543210 );
+round_trip( receive_antenna_diameter_code => 2 );
+round_trip( receive_antenna_geometry_code => 3 );
 round_trip( receive_antenna_padid => 42 );
 round_trip( receive_antenna_type => 65 );
 round_trip( router => '??' );
@@ -155,6 +173,8 @@ round_trip( tracker_type => 9 );
 round_trip( tracker_type_and_data_rate => 2 );
 round_trip( tracking_mode => 1 );
 round_trip( transmission_type => 10 );
+round_trip( transmit_antenna_diameter_code => 2 );
+round_trip( transmit_antenna_geometry_code => 3 );
 round_trip( transmit_antenna_padid => 42 );
 round_trip( transmit_antenna_type => 65 );
 round_trip( transmit_frequency => 2048000000 );

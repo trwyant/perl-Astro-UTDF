@@ -5,7 +5,7 @@ use warnings;
 
 use Test::More 0.40;
 
-plan ( tests => 55 );
+plan ( tests => 59 );
 
 require_ok('Astro::UTDF');
 
@@ -43,6 +43,8 @@ i_can_ok( 'range_delay' );
 i_can_ok( 'range_rate' );
 i_can_ok( 'raw_record' );
 i_can_ok( 'rear' );
+i_can_ok( 'receive_antenna_diameter_code' );
+i_can_ok( 'receive_antenna_geometry_code' );
 i_can_ok( 'receive_antenna_padid' );
 i_can_ok( 'receive_antenna_type' );
 i_can_ok( 'router' );
@@ -54,6 +56,8 @@ i_can_ok( 'tracker_type' );
 i_can_ok( 'tracker_type_and_data_rate' );
 i_can_ok( 'tracking_mode' );
 i_can_ok( 'transmission_type' );
+i_can_ok( 'transmit_antenna_diameter_code' );
+i_can_ok( 'transmit_antenna_geometry_code' );
 i_can_ok( 'transmit_antenna_padid' );
 i_can_ok( 'transmit_antenna_type' );
 i_can_ok( 'transmit_frequency' );

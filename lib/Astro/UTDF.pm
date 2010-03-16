@@ -71,6 +71,43 @@ sub data_interval {
 
 {
 
+    my @antenna_diameter = (
+	'less than 1 meter',
+	 '3.9 meters',
+	 '4.3 meters',
+	 '9 meters',
+	 '12 meters',
+	 '26 meters',
+	 'TDRSS ground antenna',
+	 '6 meters',
+	 '7.3 meters',
+	 '8 meters',
+	 'unused',
+	 'unused',
+	 'unused',
+	 'unused',
+	 'unused',
+	 'unused',
+    );
+    my @antenna_geometry = (
+	'az-el',
+	'X-Y (+X south)',
+	'X-Y (+X east)',
+	'RA-DEC',
+	'HR-DEC',
+	 'unused',
+	 'unused',
+	 'unused',
+	 'unused',
+	 'unused',
+	 'unused',
+	 'unused',
+	 'unused',
+	 'unused',
+	 'unused',
+	 'unused',
+    );
+
     my %decoder = (
 	data_validity => '0x%02x',
 	frequency_band => [
@@ -98,6 +135,8 @@ sub data_interval {
 	raw_record => sub {
 	    return unpack 'H*', $_[0]->raw_record();
 	},
+	receive_antenna_diameter_code => \@antenna_diameter,
+	receive_antenna_geometry_code => \@antenna_geometry,
 	tracking_mode => [
 	    'autotrack',
 	    'program track',
@@ -122,6 +161,8 @@ sub data_interval {
 	    'unused',
 	    'unused',
 	],
+	transmit_antenna_diameter_code => \@antenna_diameter,
+	transmit_antenna_geometry_code => \@antenna_geometry,
     );
 
     sub decode {
@@ -379,6 +420,16 @@ sub range_rate {
     }
 }
 
+sub receive_antenna_diameter_code {
+    splice @_, 1, 0, receive_antenna_type => 1;
+    goto &_bash_nybble;
+}
+
+sub receive_antenna_geometry_code {
+    splice @_, 1, 0, receive_antenna_type => 0;
+    goto &_bash_nybble;
+}
+
 {
 
     my %my_arg = map { $_ => 1 } qw{ file };
@@ -446,6 +497,16 @@ sub tracking_mode {
 
 sub transmission_type {
     splice @_, 1, 0, frequency_band_and_transmission_type => 0;
+    goto &_bash_nybble;
+}
+
+sub transmit_antenna_diameter_code {
+    splice @_, 1, 0, transmit_antenna_type => 1;
+    goto &_bash_nybble;
+}
+
+sub transmit_antenna_geometry_code {
+    splice @_, 1, 0, transmit_antenna_type => 0;
     goto &_bash_nybble;
 }
 
@@ -1259,6 +1320,36 @@ receive antenna PADID.
 
 This information comes from byte 48 of the record.
 
+=head2 receive_antenna_diameter_code
+
+ printf "The receive antenna diameter code is 0x%x\n",
+     $utdf->receive_antenna_diameter_code();
+ $utdf->receive_antenna_diameter_code( 3 );
+
+When called without an argument, this method is an accessor returning
+the receive antenna diameter code.
+
+When called with an argument, this method is a mutator which sets the
+receive antenna diameter code.
+
+This code is found in the high nybble of L</receive_antenna_type>, and
+the encoding is documented there.
+
+=head2 receive_antenna_geometry_code
+
+ printf "The receive antenna geometry code is 0x%x\n",
+     $utdf->receive_antenna_geometry_code();
+ $utdf->receive_antenna_geometry_code( 3 );
+
+When called without an argument, this method is an accessor returning
+the receive antenna geometry code.
+
+When called with an argument, this method is a mutator which sets the
+receive antenna geometry code.
+
+This code is found in the low nybble of L</receive_antenna_type>, and
+the encoding is documented there.
+
 =head2 receive_antenna_type
 
  print 'The receive antenna diameter/type code is ',
@@ -1463,6 +1554,36 @@ transmit antenna PADID.
 
 This information comes from byte 46 of the record.
 
+=head2 transmit_antenna_diameter_code
+
+ printf "The transmit antenna diameter code is 0x%x\n",
+     $utdf->transmit_antenna_diameter_code();
+ $utdf->transmit_antenna_diameter_code( 3 );
+
+When called without an argument, this method is an accessor returning
+the transmit antenna diameter code.
+
+When called with an argument, this method is a mutator which sets the
+transmit antenna diameter code.
+
+This code is found in the high nybble of L</transmit_antenna_type>, and
+the encoding is documented there.
+
+=head2 transmit_antenna_geometry_code
+
+ printf "The transmit antenna geometry code is 0x%x\n",
+     $utdf->transmit_antenna_geometry_code();
+ $utdf->transmit_antenna_geometry_code( 3 );
+
+When called without an argument, this method is an accessor returning
+the transmit antenna geometry code.
+
+When called with an argument, this method is a mutator which sets the
+transmit antenna geometry code.
+
+This code is found in the low nybble of L</transmit_antenna_type>, and
+the encoding is documented there.
+
 =head2 transmit_antenna_type
 
  print 'The transmit antenna diameter/type code is ',
@@ -1479,15 +1600,15 @@ This datum is a byte, whose most-significant nybble encodes the antenna
 size as follows (in hexadecimal):
 
  0 - less than 1 meter
- 1 - 3.9 meter
- 2 - 4.3 meter
- 3 - 9 meter
- 4 - 12 meter
- 5 - 26 meter
+ 1 - 3.9 meters
+ 2 - 4.3 meters
+ 3 - 9 meters
+ 4 - 12 meters
+ 5 - 26 meters
  6 - TDRSS ground antenna
- 7 - 6 meter
- 8 - 7.3 meter
- 9 - 8 meter
+ 7 - 6 meters
+ 8 - 7.3 meters
+ 9 - 8 meters
  A-F - unused
 
 Antennae not on the list are encoded to the nearest size that is on the
