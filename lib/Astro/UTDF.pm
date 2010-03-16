@@ -353,7 +353,7 @@ sub range {
 	croak "range() may not be used as a mutator";
     } else {
 	defined( my $range_delay = $self->range_delay() )
-	    or return undef;
+	    or return undef;	## no critic (ProhibitExplicitReturnUndef)
 	return ( ( $range_delay - $self->transponder_latency() ) *
 	    SPEED_OF_LIGHT / 2_000_000_000 );
     }
@@ -1263,7 +1263,7 @@ that calls can be chained.
  print 'Range is ', $utdf->range(), " kilometers\n";
 
 When called without an argument, this method is an accessor which
-returms the range to the satellite in kilometers, calculated as the
+returns the range to the satellite in kilometers, calculated as the
 speed of light (in kilometers per nanosecond) times half the difference
 between the L</range_delay> and the L</transponder_latency>.
 
