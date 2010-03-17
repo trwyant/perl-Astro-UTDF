@@ -16,7 +16,7 @@ my @export = qw{
     round_trip
 };
 
-our @EXPORT = ( @export, @Test::More::EXPORT );
+our @EXPORT = ( @export, @Test::More::EXPORT );	## no critic (ProhibitAutomaticExportation)
 our @EXPORT_OK = ( @export, @Test::More::EXPORT_OK );
 
 sub decode {
@@ -69,7 +69,7 @@ sub returns {	## no critic (RequireArgUnpacking)
 sub round_trip {	## no critic (RequireArgUnpacking)
     my ( $attr, $value, $opt ) = @_;
     $opt ||= {};
-    my $name = "Round-trip $attr( $value )";
+    my $name = $opt->{name} || "Round-trip $attr( $value )";
     my $utdf = eval {
 	my $obj = Astro::UTDF->new( $attr => $value );
 	return Astro::UTDF->new( raw_record => $obj->raw_record() );
@@ -83,30 +83,112 @@ sub round_trip {	## no critic (RequireArgUnpacking)
 
 1;
 
+__END__
+
 =head1 NAME
 
-Astro::UTDF::Test - <<< replace boilerplate >>>
+Astro::UTDF::Test - Testing routines for Astro::UTDF
 
 =head1 SYNOPSIS
 
-<<< replace boilerplate >>>
+ use lib qw{ inc };
+ use Astro::UTDF::Test;
+ plan( 'no_plan' );
+ require_ok( 'Astro::UTDF' );
+ round_trip( router => 'ZZ' );
+ my $utdf = Astro::UTDF->new();
+ returns( $utdf, router => '  ', 'Default router is blank' );
+ fails( $utdf, range => 42, 'range() may not',
+     'range() is not a mutator' );
 
 =head1 DETAILS
 
-<<< replace boilerplate >>>
+This package extends L<Test::More|Test::More> by adding convenient (to
+the author) wrappers for its tests. All L<Test::More|Test::More>
+subroutines are also exported, and available to the user.
 
-=head1 METHODS
+Each subroutine exported by this package represents one test, unless
+otherwise noted. The calling sequence is generally an invocant, a method
+name, some arguments, the expected result, and the test name.
 
-This class supports the following public methods:
+Most of the exported subroutines are wrappers for L<returns()|/returns>.
 
-=head1 ATTRIBUTES
+=head1 SUBROUTINES
 
-This class has the following attributes:
+This package exports the following subroutines:
 
+=head2 decode
 
-=head1 SEE ALSO
+ decode( $utdf, frequency_band => 'S-band',
+     'Decode frequency_band()' );
 
-<<< replace or remove boilerplate >>>
+This convenience routine simply splices C<'decode'> into the argument
+list as the name of the method, and then chains to L</returns>. Passing
+an option hash after the invocant is not supported.
+
+=head2 fails
+
+ fails( $utdf, range => 42, 'may not be used as a mutator',
+     'range() is not a mutator' );
+
+This test succeeds if the tested method throws the expected exception,
+and fails otherwise. The arguments are an invocant, a method name, any
+arguments to the method, a match string or regular expression, and a
+test name. If a match string is passed, it is made into a regular
+expression by running the results through C<quotemeta()> and then
+wrapping them in C<qr{}>.
+
+=head2 hexify
+
+This convenience routine simply splices C<< { unpack => 'H*' } >> into
+the argument list after the invocant, and then chains to L</returns>.
+Passing an option hash after the invocant is not supported.
+
+=head2 returns
+
+ returns( $utdf, router => 'AA', 'Router is AA' );
+
+The arguments are an invocant, a method name, any arguments to the
+method, the expected value, and the name of the test. In the example
+there are no arguments. The method is called on the invocant, and a
+L<Test::More::is()|Test::More/is> test performed on the result. If the
+method throws an exception, the test fails.
+
+An options hash can be given as the second argument (i.e. after the
+invocant but before the method name). This hash can contain the
+following keys:
+
+=over
+
+=item sprintf => template
+
+This option causes the result of the method to be formatted with
+sprintf() using the given template. The formatted value is compared to
+the expected value.
+
+=item unpack => template
+
+This option causes the result of the method to be unpacked using the
+given template. The unpacked value is compared to the expected value.
+
+=back
+
+=head2 round_trip
+
+ round_trip( router => 'ZZ' );
+
+This method creates an C<Astro::UTDF> object, calls the given mutator
+with the given value, then calls raw_record() on the new object. The
+raw record thus obtained is used to generate a second object. A test of
+the value returned by the original method called on the new object is
+constructed, and chained to C</returns>. A test name is generated which
+describes the attribute and its value.
+
+Just to be inconsistent, the optional hash for C</returns> can be passed
+as the third argument. You can use this hash to override the generated
+name by passing the desired name as the value of the C<name> key:
+
+ round_trip( router => 'ZZ', { name => 'Bogus router' } );
 
 =head1 SUPPORT
 
@@ -130,7 +212,5 @@ without any warranty; without even the implied warranty of
 merchantability or fitness for a particular purpose.
 
 =cut
-
-__END__
 
 # ex: set textwidth=72 :
