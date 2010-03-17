@@ -3,148 +3,16 @@ package main;
 use strict;
 use warnings;
 
-BEGIN {
-    eval {
-	require Test::More;
-	Test::More->VERSION( 0.40 );
-	Test::More->import();
-	1;
-    } or do {
-	print "1..0 # skip Test::More 0.40 required\n";
-	exit;
-    }
-}
-
+use lib qw{ inc };
+use Astro::UTDF::Test;
 use Astro::UTDF;
 
 plan( 'no_plan' );
 
-my ( $prior, $utdf ) = Astro::UTDF->slurp( 't/doppler.utdf' );
-
-returns( $utdf, agc => 0, 'agc' );
-returns( $utdf, azimuth => 0, 'azimuth' );
-returns( $utdf, data_interval => 256, 'data_interval' );
-returns( $utdf, data_validity => 2, 'data_validity' );
-decode ( $utdf, data_validity => '0x02', 'decode data_validity' );
-decode ( $utdf, frequency_band => 'unspecified', 'decode frequency_band' );
-decode ( $utdf, measurement_time => 'Tue Dec  8 01:41:51 2009',
-    'decode measurement_time' );
-decode ( $utdf, mode => '0x0220', 'decode mode' );
-decode ( $utdf, raw_record =>
-    '0d0a014141090cb2000101c1a75f000000000000000000000000000000000000000a2ccf263c00000c364d9840574057022002000100000000000000000000000000000000000000040f0f',
-    'decode raw_record' );
-decode ( $utdf, receive_antenna_diameter_code => '12 meters',
-    'decode receive_antenna_diameter_code' );
-decode ( $utdf, tracking_mode => 'autotrack', 'decode tracking_mode' );
-decode ( $utdf, receive_antenna_geometry_code => 'az-el',
-    'decode receive_antenna_geometry_code' );
-decode ( $utdf, transmission_type => 'test', 'decode transmission_type' );
-decode ( $utdf, transmit_antenna_diameter_code => '12 meters',
-    'decode transmit_antenna_diameter_code' );
-decode ( $utdf, transmit_antenna_geometry_code => 'az-el',
-    'decode transmit_antenna_geometry_code' );
-returns( $utdf, doppler_count => 43701446204, 'doppler_count' );
-returns( $utdf, doppler_shift => 40131.725, 'doppler_shift' );
-returns( $utdf, elevation => 0, 'elevation' );
-returns( $utdf, { sprintf => '%.8f' }, factor_K => 1.08597285, 'factor_K' );
-returns( $utdf, factor_M => 1000, 'factor_M' );
-returns( $utdf, frequency_band => 0, 'frequency_band' );
-returns( $utdf, frequency_band_and_transmission_type => 0,
-    'frequency_band_and_transmission_type' );
-hexify ( $utdf, front => '0d0a01', 'front' );
-returns( $utdf, hex_record =>
-    '0d0a014141090cb2000101c1a75f000000000000000000000000000000000000000a2ccf263c00000c364d9840574057022002000100000000000000000000000000000000000000040f0f',
-    'hex_record' );
-returns( $utdf, is_angle_valid => 0, 'is_angle_valid' );
-returns( $utdf, is_angle_corrected_for_misalignment => 0,
-    'is_angle_corrected_for_misalignment' );
-returns( $utdf, is_angle_corrected_for_refraction => 0,
-    'is_angle_corrected_for_refraction' );
-returns( $utdf, is_destruct_doppler => 0, 'is_destruct_doppler' );
-returns( $utdf, is_doppler_valid => 1, 'is_doppler_valid' );
-returns( $utdf, is_range_corrected_for_refraction => 0,
-    'is_range_corrected_for_refraction' );
-returns( $utdf, is_range_valid => 0, 'is_range_valid' );
-returns( $utdf, is_side_lobe => 0, 'is_side_lobe' );
-returns( $utdf, is_last_frame => 0, 'is_last_frame' );
-returns( $utdf, measurement_time => 1260236511, 'measurement_time' );
-returns( $utdf, microseconds_of_year => 0, 'microseconds_of_year' );
-returns( $utdf, mode => 544, 'mode' );
-returns( $utdf, range => 0, 'range' );
-returns( $utdf, range_rate => -2.70363808094889, 'range_rate' );
-returns( $utdf, range_delay => 0, 'range_delay' );
-hexify ( $utdf, rear => '040f0f', 'rear' );
-returns( $utdf, receive_antenna_padid => 87, 'receive_antenna_padid' );
-returns( $utdf, receive_antenna_diameter_code => 4,
-    'receive_antenna_diameter_code' );
-returns( $utdf, receive_antenna_geometry_code => 0,
-    'receive_antenna_geometry_code' );
-returns( $utdf, receive_antenna_type => 64, 'receive_antenna_type' );
-returns( $utdf, router => 'AA', 'router' );
-returns( $utdf, seconds_of_year => 29468511, 'seconds_of_year' );
-returns( $utdf, sic => 3250, 'sic' );
-hexify ( $utdf, tdrss_only => '000000000000000000000000000000000000',
-    'tdrss_only' );
-returns( $utdf, tracker_type => 0, 'tracker_type' );
-returns( $utdf, tracker_type_and_data_rate => 256,
-    'tracker_type_and_data_rate' );
-returns( $utdf, tracking_mode => 0, 'tracking_mode' );
-returns( $utdf, transmission_type => 0, 'transmission_type' );
-returns( $utdf, transmit_antenna_diameter_code => 4,
-    'transmit_antenna_diameter_code' );
-returns( $utdf, transmit_antenna_geometry_code => 0,
-    'transmit_antenna_geometry_code' );
-returns( $utdf, transmit_antenna_padid => 87, 'transmit_antenna_padid' );
-returns( $utdf, transmit_antenna_type => 64, 'transmit_antenna_type' );
-returns( $utdf, transmit_frequency => 2048854000, 'transmit_frequency' );
-returns( $utdf, transponder_latency => 0, 'transponder_latency' );
-returns( $utdf, vid => 1, 'vid (Vehicle ID)' );
-returns( $utdf, year => 9, 'year' );
-
-SKIP: {
-
-    local $@;
-    my $clone;
-
-    ok( eval { $clone = $utdf->clone() }, 'Clone our object' )
-	or skip( "Failed to clone object", 6 );
-
-    ok( eval { $clone->enforce_validity( 1 ) }, 'Set enforce_validity' )
-	or skip( "Failed to set enforce_validity", 5 );
-
-    ok( eval { $clone->enforce_validity() },
-	'See if enforce_validity is set' )
-	or skip( "Failed to set enforce_validity", 4 );
-
-    returns( $clone, azimuth => undef, 'azimuth (invalid)' );
-    returns( $clone, doppler_count => 43701446204, 'doppler_count (valid)' );
-    returns( $clone, elevation => undef, 'elevation (invalid)' );
-    returns( $clone, range_delay => undef, 'range_delay (invalid)' );
-
-    $clone->factor_M( 100 );
-    returns( $clone, factor_M => 100, 'factor_M changed to 100' );
-    $clone->factor_M( undef );
-    returns( $clone, factor_M => 1000, 'factor_M defaulted to 1000' );
-
-    $clone->factor_K( 1 );
-    returns( $clone, factor_K => 1, 'factor_K changed to 1' );
-    $clone->factor_K( undef );
-    returns( $utdf, { sprintf => '%.8f' }, factor_K => 1.08597285,
-	'factor_K defaulted to 240/221' );
-
-}
-
-{
-    my ( undef, $obj ) = Astro::UTDF->slurp( file => 't/doppler.utdf',
-	enforce_validity => 1 );
-    ok( eval { $obj->enforce_validity() },
-	'Can pass attributes to slurp()' );
-
-}
-
 round_trip( agc => 10000 );
 round_trip( azimuth => '1.00000000', { sprintf => '%.8f' } );
 round_trip( data_interval => 1 );
+round_trip( data_interval => 0.5 );
 round_trip( data_validity => 7 );
 round_trip( doppler_count => 123456789 );
 round_trip( elevation => '1.00000000', { sprintf => '%.8f' } );
@@ -183,49 +51,209 @@ round_trip( transmit_frequency => 2048000000 );
 round_trip( vid => 99 );
 round_trip( year => 8 );
 
-sub decode {
-    splice @_, 1, 0, 'decode';
-    goto &returns;
+SKIP: {
+
+    my $file = 't/data.utd';
+
+    -f $file or skip( "$file not found", 61 );
+
+    my ( $prior, $utdf ) = Astro::UTDF->slurp( $file );
+
+    returns( $utdf, agc => 1234, 'agc' );
+    returns( $utdf, { sprintf => '%.9f' },
+	azimuth => '5.852690027', 'azimuth' );
+    returns( $utdf, data_interval => 1, 'data_interval' );
+    returns( $utdf, data_validity => 7, 'data_validity' );
+    decode ( $utdf, data_validity => '0x07', 'decode data_validity' );
+    decode ( $utdf, frequency_band => 'S-band', 'decode frequency_band' );
+    # Note that perldoc -f localtime says that the string returned in
+    # scalar context is _not_ locale-dependant.
+    decode ( $utdf, measurement_time => 'Fri Mar 19 01:01:31 2010',
+	'decode measurement_time' );
+    decode ( $utdf, mode => '0x0000', 'decode mode' );
+    decode ( $utdf, raw_record =>
+	'0d0a0141410a00560063006591eb00000000ee75c57726d95aba00002ae62c1b00001bc09df104d20c380d40402a402a000007341001000000000000000000000000000000000000040f0f',
+	'decode raw_record' );
+    decode ( $utdf, receive_antenna_diameter_code => '12 meters',
+	'decode receive_antenna_diameter_code' );
+    decode ( $utdf, router => 'AA', 'decode router' );
+    decode ( $utdf, tracking_mode => 'autotrack', 'decode tracking_mode' );
+    decode ( $utdf, receive_antenna_geometry_code => 'az-el',
+	'decode receive_antenna_geometry_code' );
+    decode ( $utdf, transmission_type => 'RT (real time)',
+	'decode transmission_type' );
+    decode ( $utdf, transmit_antenna_diameter_code => '12 meters',
+	'decode transmit_antenna_diameter_code' );
+    decode ( $utdf, transmit_antenna_geometry_code => 'az-el',
+	'decode transmit_antenna_geometry_code' );
+    returns( $utdf, doppler_count => 465608177, 'doppler_count' );
+    returns( $utdf, { sprintf => '%.3f' },
+	doppler_shift => '25608.177', 'doppler_shift' );
+    returns( $utdf, { sprintf => '%0.9f' },
+	elevation => '0.953498911', 'elevation' );
+    returns( $utdf, { sprintf => '%.8f' }, factor_K => 1.08597285, 'factor_K' );
+    returns( $utdf, factor_M => 1000, 'factor_M' );
+    returns( $utdf, frequency_band => 3, 'frequency_band' );
+    returns( $utdf, frequency_band_and_transmission_type => 52,
+	'frequency_band_and_transmission_type' );
+    hexify ( $utdf, front => '0d0a01', 'front' );
+    returns( $utdf, hex_record =>
+	'0d0a0141410a00560063006591eb00000000ee75c57726d95aba00002ae62c1b00001bc09df104d20c380d40402a402a000007341001000000000000000000000000000000000000040f0f',
+	'hex_record' );
+    returns( $utdf, is_angle_valid => 1, 'is_angle_valid' );
+    returns( $utdf, is_angle_corrected_for_misalignment => 0,
+	'is_angle_corrected_for_misalignment' );
+    returns( $utdf, is_angle_corrected_for_refraction => 0,
+	'is_angle_corrected_for_refraction' );
+    returns( $utdf, is_destruct_doppler => 0, 'is_destruct_doppler' );
+    returns( $utdf, is_doppler_valid => 1, 'is_doppler_valid' );
+    returns( $utdf, is_range_corrected_for_refraction => 0,
+	'is_range_corrected_for_refraction' );
+    returns( $utdf, is_range_valid => 1, 'is_range_valid' );
+    returns( $utdf, is_side_lobe => 0, 'is_side_lobe' );
+    returns( $utdf, is_last_frame => 0, 'is_last_frame' );
+    returns( $utdf, measurement_time => 1268960491, 'measurement_time' );
+    returns( $utdf, microseconds_of_year => 0, 'microseconds_of_year' );
+    returns( $utdf, mode => 0, 'mode' );
+    returns( $utdf, { sprintf => '%.5f' },
+	range => '421.42367', 'range' );
+    returns( $utdf, { sprintf => '%.10f' },
+	range_rate => '-1.7242353358', 'range_rate' );
+    returns( $utdf, { sprintf => '%.5f' },
+	range_delay => '2811436.10547', 'range_delay' );
+    hexify ( $utdf, rear => '040f0f', 'rear' );
+    returns( $utdf, receive_antenna_padid => 42, 'receive_antenna_padid' );
+    returns( $utdf, receive_antenna_diameter_code => 4,
+	'receive_antenna_diameter_code' );
+    returns( $utdf, receive_antenna_geometry_code => 0,
+	'receive_antenna_geometry_code' );
+    returns( $utdf, receive_antenna_type => 64, 'receive_antenna_type' );
+    returns( $utdf, router => 'AA', 'router' );
+    returns( $utdf, seconds_of_year => 6656491, 'seconds_of_year' );
+    returns( $utdf, sic => 86, 'sic' );
+    hexify ( $utdf, tdrss_only => '000000000000000000000000000000000000',
+	'tdrss_only' );
+    returns( $utdf, tracker_type => 1, 'tracker_type' );
+    returns( $utdf, tracker_type_and_data_rate => 4097,
+	'tracker_type_and_data_rate' );
+    returns( $utdf, tracking_mode => 0, 'tracking_mode' );
+    returns( $utdf, transmission_type => 4, 'transmission_type' );
+    returns( $utdf, transmit_antenna_diameter_code => 4,
+	'transmit_antenna_diameter_code' );
+    returns( $utdf, transmit_antenna_geometry_code => 0,
+	'transmit_antenna_geometry_code' );
+    returns( $utdf, transmit_antenna_padid => 42, 'transmit_antenna_padid' );
+    returns( $utdf, transmit_antenna_type => 64, 'transmit_antenna_type' );
+    returns( $utdf, transmit_frequency => 2050000000, 'transmit_frequency' );
+    returns( $utdf, transponder_latency => 0, 'transponder_latency' );
+    returns( $utdf, vid => 99, 'vid (Vehicle ID)' );
+    returns( $utdf, year => 10, 'year' );
 }
 
-sub hexify {
-    splice @_, 1, 0, { unpack => 'H*' };
-    goto &returns;
+SKIP: {
+
+    local $@;
+
+    my $utdf = Astro::UTDF->new(
+	doppler_count => 44000000000,
+	is_doppler_valid => 1,
+	enforce_validity => 0,
+	transmit_frequency => 2050000000,
+    );
+    my $clone;
+
+    ok( eval { $clone = $utdf->clone() }, 'Clone our object' )
+	or skip( "Failed to clone object", 10 );
+
+    ok( eval { $clone->enforce_validity( 1 ) }, 'Set enforce_validity' )
+	or skip( "Failed to set enforce_validity", 9 );
+
+    ok( eval { $clone->enforce_validity() },
+	'See if enforce_validity is set' )
+	or skip( "Failed to set enforce_validity", 8 );
+
+    returns( $clone, azimuth => undef, 'azimuth (invalid)' );
+    returns( $clone, doppler_count => 44000000000, 'doppler_count (valid)' );
+    returns( $clone, elevation => undef, 'elevation (invalid)' );
+    returns( $clone, range_delay => undef, 'range_delay (invalid)' );
+
+    $clone->factor_M( 100 );
+    returns( $clone, factor_M => 100, 'factor_M changed to 100' );
+    $clone->factor_M( undef );
+    returns( $clone, factor_M => 1000, 'factor_M defaulted to 1000' );
+
+    $clone->factor_K( 1 );
+    returns( $clone, factor_K => 1, 'factor_K changed to 1' );
+    $clone->factor_K( undef );
+    returns( $utdf, { sprintf => '%.8f' }, factor_K => 1.08597285,
+	'factor_K defaulted to 240/221' );
+
 }
 
-sub returns {	## no critic (RequireArgUnpacking)
-    my ( $obj, @args ) = @_;
-    my $opt = ref $args[0] eq 'HASH' ? shift @args : {};
-    my $method = shift @args;
-    my $name = pop @args;
-    my $want = pop @args;
-    my $got;
-    eval { $got = $obj->$method( @args ); 1 }
-	or do {
-	@_ = ( "$name threw $@" );
-	goto &fail;
-    };
-    $opt->{unpack}
-	and $got = unpack $opt->{unpack}, $got;
-    $opt->{sprintf}
-	and $got = sprintf $opt->{sprintf}, $got;
-    @_ = ( $got, $want, $name );
-    goto &is;
-}
+{
+    my ( $prior, $utdf ) = Astro::UTDF->slurp( file => 't/doppler.utdf',
+	enforce_validity => 1 );
+    ok( eval { $utdf->enforce_validity() },
+	'Can pass attributes to slurp()' );
 
-sub round_trip {	## no critic (RequireArgUnpacking)
-    my ( $attr, $value, $opt ) = @_;
-    $opt ||= {};
-    my $name = "Round-trip $attr( $value )";
-    my $utdf = eval {
-	my $obj = Astro::UTDF->new( $attr => $value );
-	return Astro::UTDF->new( raw_record => $obj->raw_record() );
-    } or do {
-	@_ = ( "$name threw $@" );
-	goto &fail;
-    };
-    @_ = ( $utdf, $opt, $attr, $value, $name );
-    goto &returns;
+    my $other = $utdf->new();
+    isa_ok( $other, 'Astro::UTDF', 'Can call new() on an object' );
+    ok( ! $other->enforce_validity(), '$utdf->new() is not $utdf->clone()' );
+
+    fails( 'Astro::UTDF', 'new', fubar => 0, 'Method fubar() not found',
+	'new() can not set value of fubar' );
+
+    fails( $utdf, data_interval => -1,
+	'Negative data interval invalid', 'Negative data_interval' );
+
+    fails( $utdf, doppler_shift => 2000,
+	'doppler_shift() may not be used as a mutator',
+	'doppler_shift() is not a mutator' );
+
+    returns( $prior, doppler_shift => undef,
+	'no doppler_shift() without prior_record()' );
+
+    $utdf->enforce_validity( 1 );
+    returns( $utdf, { sprintf => '%.3f' }, doppler_shift => '40131.725',
+	'Doppler shift with enforce_validity()' );
+
+    $prior->prior_record( $utdf );
+    returns( $prior, { sprintf => '%.3f' }, doppler_shift =>
+	'40131.725', 'Doppler shift with records reversed' );
+
+    fails( $prior, prior_record => 42,
+	'Prior record must be undef or an Astro::UTDF object',
+	'prior_record() validation' );
+
+    $prior->prior_record( undef );
+
+    fails( $utdf, range => 42,
+	'range() may not be used as a mutator',
+	'range() can not be a mutator' );
+
+    returns( $utdf, range => undef, 'No range with enforce_validity()' );
+
+    fails( $utdf, range_rate => 42,
+	'range_rate() may not be used as a mutator',
+	'range_rate() can not be a mutator' );
+
+    returns( $prior, range_rate => undef,
+	'No range_rate() without a prior_record()' );
+
+    fails( $utdf, raw_record => 'fubar',
+	'Invalid raw record', 'Raw record not 75 bytes long' );
+
+    fails( 'Astro::UTDF', 'slurp', 'File not specified',
+	'slurp() requires a file' );
+
+    fails( 'Astro::UTDF', slurp => 't/fubar.utd',
+	't/fubar.utd not found',
+	'Can not slurp a non-existent file' );
+
+    fails( 'Astro::UTDF', slurp => 't',
+	't not a normal file',
+	'Can not slurp a non-normal file' );
+
 }
 
 1;

@@ -20,6 +20,8 @@ CVS/
 \.svn/
 \.swp$
 ^Standalone.PL$
+^t/doppler\.utdf$
+^t/real_data\.t$
 ^tools/
 ^TODO$
 ^Astro-UTDF

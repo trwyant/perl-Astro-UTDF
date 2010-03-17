@@ -18,7 +18,8 @@ use constant SPEED_OF_LIGHT => 299792.458;	# Km/sec, per U.S. NIST
 our $VERSION = '0.000_02';
 
 sub new {
-    $_[0] = ref $_[0] || $_[0];
+    my $class = shift;
+    unshift @_, ref $class || $class;
     goto &clone;
 }
 
@@ -52,9 +53,10 @@ sub clone {
 sub data_interval {
     my ( $self, @args ) = @_;
     if ( @args ) {
-	( my $interval = shift @args ) <= 0
-	    and croak "Negative data interval invalid";
-	if ( $interval < 1 && $interval > 0 ) {
+	my $interval = $args[0];
+	if ( $interval <= 0 ) {
+	    croak "Negative data interval invalid";
+	} elsif ( $interval < 1 ) {
 	    $interval = 1 / $interval;
 	    $interval = ( ~ $interval & 0x07ff ) + 1;
 	}
@@ -129,6 +131,8 @@ sub data_interval {
 	    'unknown code 15',
 	],
 	measurement_time => sub {
+	    # Note that perldoc -f localtime says that the string
+	    # returned in scalar context is _not_ locale-dependant.
 	    return scalar gmtime $_[0]->measurement_time();
 	},
 	mode => '0x%04x',
@@ -339,7 +343,8 @@ sub prior_record {
     if ( @args ) {
 	my $prior = shift @args;
 	defined $prior and not _INSTANCE( $prior, __PACKAGE__ )
-	    and croak 'Prior record must be undef or a ', __PACKAGE__;
+	    and croak 'Prior record must be undef or an ', __PACKAGE__,
+		' object';
 	$self->{prior_record} = $prior;
 	return $self;
     } else {
@@ -466,7 +471,8 @@ sub receive_antenna_geometry_code {
 	my $fn;
 	if ( ! openhandle( $fh ) ) {
 	    $fn = $fh;
-	    -f $fn or croak "$fn not a normal file";
+	    -e $fn or croak "$fn not found";
+	    -f _ or croak "$fn not a normal file";
 	    $fh = IO::File->new( $fn, '<' )
 		or croak "Unable to open $fn: $!";
 	}
