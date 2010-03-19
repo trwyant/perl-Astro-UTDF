@@ -1716,6 +1716,11 @@ This information comes from byte 6 of the record.
 Support is by the author. Please file bug reports at
 L<http://rt.cpan.org>, or in electronic mail to the author.
 
+=head1 ACKNOWLEDGMENT
+
+This module would not exist without the support and encouragement of
+Vidar Tyldum Hansen of Kongsberg Satellite Services AS.
+
 =head1 AUTHOR
 
 Thomas R. Wyant, III F<wyant at cpan dot org>

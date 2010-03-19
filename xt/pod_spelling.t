@@ -21,9 +21,12 @@ __DATA__
 agc
 Doppler
 hexified
+Kongsberg
 padid
 SRE
 TDRSS
+Tyldum
 UTDF
 vid
-wyant
+Vidar
+Wyant
