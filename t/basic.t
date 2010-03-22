@@ -7,7 +7,7 @@ use Test::More 0.40;
 
 plan ( tests => 61 );
 
-require_ok('Astro::UTDF');
+require_ok('Astro::UTDF') or BAIL_OUT();
 
 i_can_ok( 'new' );
 i_can_ok( 'agc' );
