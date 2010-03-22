@@ -110,6 +110,11 @@ sub data_interval {
 	 'unused',
     );
 
+    my $hexify = sub {
+	my ( $self, $method ) = @_;
+	return unpack 'H*', $self->$method();
+    };
+
     my %decoder = (
 	data_validity => '0x%02x',
 	frequency_band => [
@@ -130,17 +135,19 @@ sub data_interval {
 	    'unknown code 14',
 	    'unknown code 15',
 	],
+	frequency_band_and_transmission_type => '0x%02x',
+	front => $hexify,
 	measurement_time => sub {
 	    # Note that perldoc -f localtime says that the string
 	    # returned in scalar context is _not_ locale-dependant.
 	    return scalar gmtime $_[0]->measurement_time();
 	},
 	mode => '0x%04x',
-	raw_record => sub {
-	    return unpack 'H*', $_[0]->raw_record();
-	},
+	raw_record => $hexify,
+	rear => $hexify,
 	receive_antenna_diameter_code => \@antenna_diameter,
 	receive_antenna_geometry_code => \@antenna_geometry,
+	tdrss_only => $hexify,
 	tracking_mode => [
 	    'autotrack',
 	    'program track',
@@ -178,7 +185,7 @@ sub data_interval {
 	'ARRAY' eq $type
 	    and return $dcdr->[ $self->$method( @args ) ];
 	'CODE' eq $type
-	    and return $dcdr->( $self, @args );
+	    and return $dcdr->( $self, $method, @args );
 	confess "Programming error -- decoder for $method is $type";
     }
 }
@@ -672,10 +679,19 @@ Astro::UTDF - Manipulate Universal Tracking Data Format data
  use Astro::UTDF;
  my @data = Astro::UTDF->slurp( $file_name );
  foreach my $utdf ( @data ) {
-     print join( "\t", scalar gmtime $utdf->time(),
+     print join( "\t", $utdf->decode( 'measurement_time' ),
          $utdf->azimuth(), $utdf->elevation(),
      ), "\n";
  }
+
+=head1 NOTICE
+
+This code should be considered alpha software. It was written without
+access to the full specification, and has been exposed to a B<very>
+limited set of honest-to-Heaven UTDF data (the data in the test suite
+are artificial). The wise user will perform his or her own tests on this
+code, since it may produce results other than those intended by either
+author or user.
 
 =head1 DETAILS
 
@@ -807,10 +823,20 @@ following methods. Generally, the output comes pretty much verbatim from
 the description of the given method's output.
 
  data_validity (in hexadecimal)
+ frequency_band
+ frequency_band_and_transmission_type (in hexadecimal)
+ front (in hexadecimal)
  measurement_time ( = scalar gmtime )
  mode (in hexadecimal)
+ raw_record (in hexadecimal)
+ rear (in hexadecimal)
+ receive_antenna_diameter_code
+ receive_antenna_geometry_code
+ tdrss_only (in hexadecimal)
  tracking_mode
- frequency_band_and_transmission_type
+ transmission_type
+ transmit_antenna_diameter_code
+ transmit_antenna_geometry_code
 
 =head2 doppler_count
 
