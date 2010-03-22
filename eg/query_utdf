@@ -22,7 +22,8 @@ my $tle;	# TLE of satellite if any.
 	'MSWin32' => 'query_utdf.ini',
 	'MacOS' => 'query_utdf.ini',
     );
-    $home = 'VMS' eq $^O ? $ENV{'SYS$LOGIN'} : $ENV{HOME};
+    $home = 'VMS' eq $^O ? $ENV{'SYS$LOGIN'} : (
+	$ENV{HOME} || $ENV{LOGDIR} || $ENV{USERPROFILE} );
     $fn = File::Spec->catfile( $home,
 	$inifil{$^O} || '.query_utdfrc' );
     if ( -e $fn ) {
@@ -49,9 +50,12 @@ sub _execute {
     $buffer =~ s/ \s+ \z //smx;
     $buffer or next;
     '#' eq substr $buffer, 0, 1 and next;
+    $buffer =~ s/ \A ! \s* /system /smx;
     my ( $cmd, @args ) = split qr{ \s+ }smx, $buffer;
     eval {
 	if ( my $code = __PACKAGE__->can( "cmd_$cmd" ) ) {
+	    $cmd eq 'system'
+		and ( undef, @args ) = split qr{ \s+ }smx, $buffer, 2;
 	    $code->( @args );
 	} elsif ( '_' ne substr( $cmd, 0, 1 ) &&
 	    $data[$inx] &&
@@ -64,6 +68,7 @@ sub _execute {
 	}
 	1;
     } or warn $@;
+    return;
 }
 
 sub cmd_compare {
@@ -96,6 +101,11 @@ sub cmd_compare {
     return;
 }
 
+sub cmd_count {
+    print scalar @data, "\n";
+    return;
+}
+
 sub cmd_exit {
     print "\n";
     exit;
@@ -114,6 +124,36 @@ sub cmd_help {
 		-verbose => 2,
 		-exitval => 'NOEXIT',
 	    } );
+    }
+    return;
+}
+
+sub cmd_list {
+    my @args = @_;
+    my @range;
+    my @items;
+    foreach ( @args ) {
+	if ( m/ \A \d+ (?: - \d+ )? \z /smx ) {
+	    push @range, $_;
+	} else {
+	    push @items, $_;
+	}
+    }
+    @items or push @items, 'measurement_time';
+    @range or push @range, $inx;
+    print join( "\t", 'index', @items ), "\n";
+    foreach my $start ( @range ) {
+	my $finish;
+	if ( $start =~ s/ - ( \d+ ) \z //smx ) {
+	    $finish = $1;
+	} else {
+	    $finish = $start;
+	}
+	$finish > $#data and $finish = $#data;
+	foreach my $inx ( $start .. $finish ) {
+	    print join( "\t", $inx, map { $data[$inx]->decode( $_ ) }
+		@items ), "\n";
+	}
     }
     return;
 }
@@ -183,6 +223,12 @@ sub cmd_station {
     return;
 }
 
+sub cmd_system {
+    my ( @args ) = @_;
+    system "@args";
+    return;
+}
+
 sub cmd_tle {
     my ( $fn ) = @_;
     if ( defined $fn ) {
@@ -241,6 +287,10 @@ commands have been provided:
 
 =over
 
+=item count
+
+This command prints the number of UTDF records currently loaded.
+
 =item exit
 
 This command terminates the script. End-of-file also works.
@@ -249,6 +299,26 @@ This command terminates the script. End-of-file also works.
 
 Display this documentation. C<help utdf> displays the documentation for
 L<Astro::UTDF|Astro::UTDF>.
+
+=item list
+
+This command lists data from the file. It takes any number of arguments.
+An argument that is entirely numeric (e.g. C<42>) specifies the number
+of a record to list. An argument that is two numeric strings separated
+by a dash (e.g.  C<86-99>) specifies a range of records to list. Any
+other argument specifies the name of a field to list. For example,
+
+ list 150 100-120 measurement_time azimuth elevation
+
+Lists the measurement_time, azimuth, and elevation from record 150 and
+records 100 through 120, in that order.
+
+Record numbers referring to non-existent records will be ignored.
+Non-existent fields will cause the command (though not the script) to
+die horribly.
+
+The range defaults to the current record, and the list of fields
+defaults to measurement_time.
 
 =item load
 
@@ -268,6 +338,33 @@ record 4, and C<next -1> will select record 0.
 This command selects the record at the given index, which defaults to 0.
 Negative indices select from the end.
 
+=item system
+
+This command issues a system command. You can use '!' as a synonym.
+
 =back
+
+=head1 SUPPORT
+
+Support is by the author. Please file bug reports at
+L<http://rt.cpan.org>, or in electronic mail to the author.
+
+=head1 AUTHOR
+
+Thomas R. Wyant, III F<wyant at cpan dot org>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (C) 2010, Thomas R. Wyant, III
+
+This program is free software; you can redistribute it and/or modify it
+under the same terms as Perl 5.10.0. For more details, see the full text
+of the licenses in the directory LICENSES.
+
+This program is distributed in the hope that it will be useful, but
+without any warranty; without even the implied warranty of
+merchantability or fitness for a particular purpose.
+
+=cut
 
 # ex: set textwidth=72 :
