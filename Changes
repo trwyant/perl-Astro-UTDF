@@ -1,3 +1,30 @@
+0.000_03	22-Mar-2010	T. R. Wyant
+  Require Perl 5.006.
+  Correct the code in the SYNOPSIS.
+  Add NOTICE to the pod, declaring this alpha code.
+  Generate own UTDF data for testing purposes.
+  Add accessor range().
+  Make factor_K() and factor_M() public methods, and make them
+    accessor/mutators so that the user can override the generated
+    values if needed.
+  Add accessor/mutators data_interval(),
+    is_angle_corrected_for_misalignment(),
+    is_angle_corrected_for_refraction(), is_destruct_doppler(),
+    is_range_corrected_for_refraction(), is_side_lobe(), mutators
+    receive_antenna_diameter_code(), receive_antenna_geometry_code(),
+    transmit_antenna_diameter_code(), transmit_antenna_geometry_code(),
+    and transponder_latency().
+  Make agc(), azimuth(), data_validity(), doppler_count(), elevation(),
+    frequency_band_and_transmission_type(), front(), measurement_time(),
+    microseconds_of_year(), mode(), range_delay(), rear(),
+    receive_antenna_padid(), receive_antenna_type(), router(),
+    seconds_of_year(), sic(), tdrss_only(),
+    tracker_type_and_data_rate(), tracking_mode(),
+    transmit_antenna_padid(), transmit_antenna_type(),
+    transmit_frequency(), vid(), and year() mutators as well as
+    accessors.
+  Add various accessors to the decode() method.
+
 0.000_02	03-Mar-2010	T. R. Wyant
   Corrected conversion of azimuth and elevation values to radians.
   Make the following accessors into accessor/mutators: frequency_band(),
