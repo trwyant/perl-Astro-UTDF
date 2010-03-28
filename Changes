@@ -1,3 +1,7 @@
+0.001		28-Mar-2010	T. R. Wyant
+  Initial CPAN release. No changes from 0.000_03 except version number.
+    And this note.
+
 0.000_03	22-Mar-2010	T. R. Wyant
   Require Perl 5.006.
   Correct the code in the SYNOPSIS.
