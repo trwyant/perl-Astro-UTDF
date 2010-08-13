@@ -157,13 +157,15 @@ SKIP: {
     );
     my $clone;
 
-    ok( eval { $clone = $utdf->clone() }, 'Clone our object' )
+    ok( eval { $clone = $utdf->clone() },	## no critic (RequireCheckingReturnValueOfEval)
+	'Clone our object' )
 	or skip( "Failed to clone object", 10 );
 
-    ok( eval { $clone->enforce_validity( 1 ) }, 'Set enforce_validity' )
+    ok( eval { $clone->enforce_validity( 1 ) },	## no critic (RequireCheckingReturnValueOfEval)
+	'Set enforce_validity' )
 	or skip( "Failed to set enforce_validity", 9 );
 
-    ok( eval { $clone->enforce_validity() },
+    ok( eval { $clone->enforce_validity() },	## no critic (RequireCheckingReturnValueOfEval)
 	'See if enforce_validity is set' )
 	or skip( "Failed to set enforce_validity", 8 );
 
@@ -188,7 +190,7 @@ SKIP: {
 {
     my ( $prior, $utdf ) = Astro::UTDF->slurp( file => $file,
 	enforce_validity => 1, is_range_valid => 0 );
-    ok( eval { $utdf->enforce_validity() },
+    ok( eval { $utdf->enforce_validity() },	## no critic (RequireCheckingReturnValueOfEval)
 	'Can pass attributes to slurp()' );
 
     my $other = $utdf->new();
