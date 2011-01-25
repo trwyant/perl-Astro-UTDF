@@ -53,7 +53,8 @@ round_trip( year => 8 );
 
 my $file = 't/data.utd';
 
-my ( $prior, $utdf ) = Astro::UTDF->slurp( $file );
+## my ( $prior, $utdf ) = Astro::UTDF->slurp( $file );
+my ( undef, $utdf ) = Astro::UTDF->slurp( $file );
 
 returns( $utdf, agc => 1234, 'agc' );
 returns( $utdf, { sprintf => '%.9f' },

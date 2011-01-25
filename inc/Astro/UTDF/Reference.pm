@@ -128,7 +128,7 @@ sub doppler
     else
     {
 #TW     my $utdf_uncoded = $_[0];
-	my $utdf_uncoded = $self->{hex_data};	#TW
+#TW	my $utdf_uncoded = $self->{hex_data};	#TW
 
 #TW     my $freq = (sprintf("%d", hex(substr($utdf_uncoded, 80, 8)))) * 10;
 	my $freq = $self->frequency();		#TW
@@ -145,7 +145,7 @@ sub doppler
 #TW     {
 #TW         $doppler_mode = 2;
 #TW     }
-	my $doppler_mode = $self->doppler_mode();
+#TW	my $doppler_mode = $self->doppler_mode();
 
 #TW     my $fd = substr($utdf_uncoded, 64, 12);
 #TW     my $vec = Bit::Vector->new_Hex(64, "$fd");

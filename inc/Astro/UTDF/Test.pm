@@ -26,7 +26,8 @@ sub decode {
 
 sub fails {	## no critic (RequireArgUnpacking)
     my ( $obj, @args ) = @_;
-    my $opt = ref $args[0] eq 'HASH' ? shift @args : {};
+##  my $opt = ref $args[0] eq 'HASH' ? shift @args : {};
+    ref $args[0] eq 'HASH' and shift @args;	# $opt is unused
     my $method = shift @args;
     my $name = pop @args;
     my $want = pop @args;

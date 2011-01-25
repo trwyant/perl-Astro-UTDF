@@ -15,7 +15,8 @@ SKIP: {
 
     -f $file or skip( "$file not found", 60 );
 
-    my ( $prior, $utdf ) = Astro::UTDF->slurp( $file );
+##  my ( $prior, $utdf ) = Astro::UTDF->slurp( $file );
+    my ( undef, $utdf ) = Astro::UTDF->slurp( $file );
 
     returns( $utdf, agc => 0, 'agc' );
     returns( $utdf, azimuth => 0, 'azimuth' );
