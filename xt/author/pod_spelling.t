@@ -24,9 +24,12 @@ agc
 Doppler
 hexified
 Kongsberg
+merchantability
 padid
+radians
 SRE
 TDRSS
+tropospheric
 Tyldum
 UTDF
 vid
