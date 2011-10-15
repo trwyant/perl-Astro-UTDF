@@ -3,17 +3,19 @@ use warnings;
 
 use 5.006;
 
+use lib qw{ inc };
+
 use ExtUtils::MakeMaker;
+use My::Module::Meta;
 
 (my $mmv = ExtUtils::MakeMaker->VERSION) =~ s/_//g;
+
+my $meta = My::Module::Meta->new();
 
 my %args = (
     NAME => 'Astro::UTDF',
     VERSION_FROM => 'lib/Astro/UTDF.pm',
-    PREREQ_PM => {
-	'Params::Util'	=> 0.25,
-	'Scalar::Util'	=> 0,
-    },
+    PREREQ_PM => $meta->requires(),
     PL_FILES => {},	# Prevent old MakeMaker from running Build.PL
     'dist' => {COMPRESS => 'gzip', SUFFIX => 'gz'},
     AUTHOR => 'Tom Wyant (wyant at cpan dot org)',
@@ -29,16 +31,17 @@ if ( $mmv >= 6.4501 ) {
 	},
     };
     $args{META_MERGE} = {
-	build_requires => {
-	    'Test::More' => 0.40,
-	},
 	resources => {
 	    license => 'http://dev.perl.org/licenses/',
 	},
     };
-} else {
-    $args{PREREQ_PM}{'Test::More'} = 0.40;
 }
 
-WriteMakefile (%args);
+$mmv >= 6.4701 and $args{MIN_PERL_VERSION} = $meta->requires_perl();
 
+$mmv >= 6.5501
+    and $args{BUILD_REQUIRES} = $meta->build_requires()
+    or $mmv >= 6.4501
+    and $args{META_MERGE}{build_requires} = $meta->build_requires();
+
+WriteMakefile (%args);
