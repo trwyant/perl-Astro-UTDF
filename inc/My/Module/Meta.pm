@@ -74,7 +74,7 @@ This class supports the following public methods:
 
 =head2 new
 
- my $meta = PPIx::Meta->new();
+ my $meta = My::Module::Meta->new();
 
 This method instantiates the class.
 
