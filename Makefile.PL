@@ -32,6 +32,7 @@ if ( $mmv >= 6.4501 ) {
     };
     $args{META_MERGE} = {
 	resources => {
+	    bugtracker => 'https://rt.cpan.org/Public/Dist/Display.html?Name=Astro-UTDF',
 	    license => 'http://dev.perl.org/licenses/',
 	},
     };

@@ -28,6 +28,9 @@ $mbv >= 0.28 and $args{meta_merge} = {
     no_index => {
 	directory => [qw{inc t xt}],
     },
+    resources => {
+	bugtracker => 'https://rt.cpan.org/Public/Dist/Display.html?Name=Astro-UTDF',
+    },
 };
 
 $mbv >= 0.34
