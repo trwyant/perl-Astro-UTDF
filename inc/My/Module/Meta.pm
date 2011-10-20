@@ -34,7 +34,6 @@ sub requires {
 ##  if ( ! $self->distribution() ) {
 ##  }
     return +{
-	'Params::Util'	=> 0.25,
 	'Scalar::Util'	=> 0,
 	@extra,
     };

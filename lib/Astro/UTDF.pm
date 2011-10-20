@@ -5,9 +5,8 @@ use warnings;
 
 use Carp;
 use IO::File ();
-use Params::Util 0.25 qw{ _INSTANCE };
 use POSIX qw{ floor };
-use Scalar::Util qw{ openhandle };
+use Scalar::Util qw{ blessed openhandle };
 use Time::Local;
 
 use constant FULL_CIRCLE => 4294967296;	# 2 ** 32;
@@ -349,7 +348,7 @@ sub prior_record {
     my ( $self, @args ) = @_;
     if ( @args ) {
 	my $prior = shift @args;
-	defined $prior and not _INSTANCE( $prior, __PACKAGE__ )
+	defined $prior and not __PACKAGE__->_instance( $prior )
 	    and croak 'Prior record must be undef or an ', __PACKAGE__,
 		' object';
 	$self->{prior_record} = $prior;
@@ -664,6 +663,23 @@ sub _bash_nybble {
     } else {
 	return ( $self->{$attr} & $mask ) >> $shift;
     }
+}
+
+# $class->_instance( $obj )
+# returns the class name of the invocant if the argument is an instance
+# of the invocant's class, or one of its subclasses. Otherwise simply
+# returns. Can be called as a static method.
+sub _instance {
+    my ( $class, $obj ) = @_;
+    ref $class
+	and $class = ref $class;
+    ref $obj
+	or return;
+    blessed( $obj )
+	or return;
+    $obj->isa( $class )
+	or return;
+    return $class;
 }
 
 1;

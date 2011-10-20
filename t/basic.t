@@ -92,6 +92,7 @@ SKIP: {
 	    SPEED_OF_LIGHT
 	    TWO_PI
 	    VERSION
+	    blessed
 	    can
 	    carp
 	    confess
@@ -105,7 +106,7 @@ SKIP: {
 	    _bash_angle
 	    _bash_bit
 	    _bash_nybble
-	    _INSTANCE
+	    _instance
 	    _static
 	} );
 }
