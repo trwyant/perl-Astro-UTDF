@@ -34,7 +34,13 @@ sub requires {
 ##  if ( ! $self->distribution() ) {
 ##  }
     return +{
+	'Carp'		=> 0,
+	'IO::File'	=> 0,
+	'POSIX'		=> 0,
 	'Scalar::Util'	=> 0,
+	'Time::Local'	=> 0,
+	strict		=> 0,
+	warnings	=> 0,
 	@extra,
     };
 }
