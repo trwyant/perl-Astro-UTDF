@@ -1,3 +1,10 @@
+0.001_90	16-Nov-2011	T. R. Wyant
+  Get serious about dependencies; mention everything, including core.
+  Drop dependency on Params::Util. I was only using _INSTANCE(), and
+    that can be managed usig Scalar::Util blessed(). Since I already use
+    Scalar::Util, this means fewer dependencies.
+  Various structural re-organizations of the kit.
+
 0.001		28-Mar-2010	T. R. Wyant
   Initial CPAN release. No changes from 0.000_03 except version number.
     And this note.
