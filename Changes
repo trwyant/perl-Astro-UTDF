@@ -1,3 +1,6 @@
+0.002		27-Nov-2011	T. R. Wyant
+  Update LICENSES/Copying (GNU GPL) to have current FSF address.
+
 0.001_90	16-Nov-2011	T. R. Wyant
   Get serious about dependencies; mention everything, including core.
   Drop dependency on Params::Util. I was only using _INSTANCE(), and

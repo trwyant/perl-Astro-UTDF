@@ -14,7 +14,7 @@ use constant PI => atan2( 0, -1 );
 use constant TWO_PI => 2 * PI;
 use constant SPEED_OF_LIGHT => 299792.458;	# Km/sec, per U.S. NIST
 
-our $VERSION = '0.001_90';
+our $VERSION = '0.002';
 
 sub new {
     my $class = shift;
