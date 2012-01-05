@@ -6,7 +6,7 @@ use warnings;
 use base qw{ Exporter };
 
 use Carp;
-use Test::More 0.40;
+use Test::More 0.88;
 
 my @export = qw{
     decode

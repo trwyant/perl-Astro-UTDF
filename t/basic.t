@@ -3,9 +3,7 @@ package main;
 use strict;
 use warnings;
 
-use Test::More 0.40;
-
-plan ( tests => 61 );
+use Test::More 0.88;
 
 require_ok('Astro::UTDF') or BAIL_OUT();
 
@@ -110,6 +108,8 @@ SKIP: {
 	    _static
 	} );
 }
+
+done_testing;
 
 {
 

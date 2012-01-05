@@ -3,16 +3,9 @@ package main;
 use strict;
 use warnings;
 
-BEGIN {
-    eval {
-	require Test::More;
-	Test::More->import();
-	1;
-    } or do {
-	print "1..0 # skip Test::More required to test pod coverage.\n";
-	exit;
-    };
+use Test::More 0.88;
 
+BEGIN {
     eval {
 	require Test::Pod::Coverage;
 	Test::Pod::Coverage->VERSION(1.00);
@@ -32,3 +25,5 @@ all_pod_coverage_ok ({
     });
 
 1;
+
+# ex: set textwidth=72 :

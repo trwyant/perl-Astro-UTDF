@@ -4,10 +4,9 @@ use strict;
 use warnings;
 
 use lib qw{ inc };
+
 use Astro::UTDF::Test;
 use Astro::UTDF;
-
-plan( 'no_plan' );
 
 SKIP: {
 
@@ -98,6 +97,8 @@ SKIP: {
     returns( $utdf, vid => 1, 'vid (Vehicle ID)' );
     returns( $utdf, year => 9, 'year' );
 }
+
+done_testing;
 
 1;
 
