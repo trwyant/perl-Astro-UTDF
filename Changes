@@ -1,3 +1,8 @@
+0.003		2012-01-05	T. R. Wyant
+  Bring Changes file into compliance with Test::CPAN::Changes. Add test
+    xt/author/changes.t to be sure it stays that way.
+  Build now requires Test::More 0.88.
+
 0.002		2011-11-27	T. R. Wyant
   Update LICENSES/Copying (GNU GPL) to have current FSF address.
 
