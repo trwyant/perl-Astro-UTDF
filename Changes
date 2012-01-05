@@ -1,18 +1,18 @@
-0.002		27-Nov-2011	T. R. Wyant
+0.002		2011-11-27	T. R. Wyant
   Update LICENSES/Copying (GNU GPL) to have current FSF address.
 
-0.001_90	16-Nov-2011	T. R. Wyant
+0.001_90	2011-11-16	T. R. Wyant
   Get serious about dependencies; mention everything, including core.
   Drop dependency on Params::Util. I was only using _INSTANCE(), and
     that can be managed usig Scalar::Util blessed(). Since I already use
     Scalar::Util, this means fewer dependencies.
   Various structural re-organizations of the kit.
 
-0.001		28-Mar-2010	T. R. Wyant
+0.001		2010-03-28	T. R. Wyant
   Initial CPAN release. No changes from 0.000_03 except version number.
     And this note.
 
-0.000_03	22-Mar-2010	T. R. Wyant
+0.000_03	2010-03-22	T. R. Wyant
   Require Perl 5.006.
   Correct the code in the SYNOPSIS.
   Add NOTICE to the pod, declaring this alpha code.
@@ -39,7 +39,7 @@
     accessors.
   Add various accessors to the decode() method.
 
-0.000_02	03-Mar-2010	T. R. Wyant
+0.000_02	2010-03-03	T. R. Wyant
   Corrected conversion of azimuth and elevation values to radians.
   Make the following accessors into accessor/mutators: frequency_band(),
     is_angle_valid(), is_doppler_valid(), is_range_valid(),
@@ -66,5 +66,5 @@
     relevant valid bit is not set, unless enforce_validity() is true.
   Add accessor/mutator enforce_validity().
 
-0.000_01	24-Feb-2010	T. R. Wyant
+0.000_01	2010-02-24	T. R. Wyant
   Initial source-controlled version.
