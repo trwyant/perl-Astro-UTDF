@@ -12,7 +12,8 @@ functional tests whatever, and the public interface is NOT stable.
 
 INSTALLATION
 
-This package is installable by either of the two usual incantations:
+This package is installable by your favorite CPAN client, or by either
+of the two usual incantations:
 
     tar -xzf Astro-UTDF-9.999.tar
     perl Makefile.PL
@@ -34,8 +35,8 @@ ftp://ftp.microsoft.com/Softlib/MSLFILES/nmake15.exe for a copy of
 nmake for MSWin32 if you need it.
 
 Of course, since it's pure Perl, you can just expand the kit and drop
-the .pm files into the Astro/Coord/ECI directory (creating it if
-necessary) in the appropriate place in your @INC directories.
+the .pm file into the Astro/ directory (creating it if necessary) in
+the appropriate place in your @INC directories.
 
 LICENSING INFORMATION
 
