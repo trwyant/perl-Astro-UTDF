@@ -18,6 +18,7 @@ CVS/
 \.old$
 ^pod2htm.\.tmp$
 ^ref/
+\.git(?:ignore$|/)
 \.svn/
 \.swp$
 ^Standalone.PL$
