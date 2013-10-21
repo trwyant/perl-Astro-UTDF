@@ -1,3 +1,8 @@
+0.004		2013-10-20	T. R. Wyant
+  Correct README file.
+  Make the authortest build target set environment variable
+    AUTHOR_TESTING to 1.
+
 0.003		2012-01-05	T. R. Wyant
   Bring Changes file into compliance with Test::CPAN::Changes. Add test
     xt/author/changes.t to be sure it stays that way.
