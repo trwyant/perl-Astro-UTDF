@@ -1,3 +1,6 @@
+0.004_01	2014-10-19	T. R. Wyant
+  Housekeeping connected with conversion to Git. No code changes.
+
 0.004		2013-10-20	T. R. Wyant
   Correct README file.
   Make the authortest build target set environment variable
@@ -78,3 +81,5 @@
 
 0.000_01	2010-02-24	T. R. Wyant
   Initial source-controlled version.
+
+# ex: set textwidth=72 autoindent :
