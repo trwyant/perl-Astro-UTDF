@@ -1,3 +1,4 @@
+/Astro-UTDF-*
 /blib
 /Build
 /_build
@@ -13,4 +14,5 @@
 /MYMETA.yml
 /nytprof*
 /ref
+.*.swp
 /TODO
