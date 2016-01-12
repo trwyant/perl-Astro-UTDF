@@ -459,7 +459,7 @@ sub receive_antenna_geometry_code {
     my %my_arg = map { $_ => 1 } qw{ file };
 
     sub slurp {
-	my ( $class, @in_args ) = @_;
+	my ( undef, @in_args ) = @_;		# Invocant unused
 
 	@in_args % 2 and unshift @in_args, 'file';
 	my ( %arg, @attrib );
