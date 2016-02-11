@@ -22,6 +22,7 @@ my %args = (
 	perl => $meta->requires_perl(),
     ),
     license => 'perl',
+    add_to_cleanup	=> [ qw{ cover_db } ],
 );
 
 $mbv >= 0.28
