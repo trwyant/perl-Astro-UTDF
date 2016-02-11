@@ -1,4 +1,4 @@
-package Astro::UTDF::Test;
+package My::Module::Test;
 
 use strict;
 use warnings;
@@ -88,12 +88,12 @@ __END__
 
 =head1 NAME
 
-Astro::UTDF::Test - Testing routines for Astro::UTDF
+My::Module::Test - Testing routines for Astro::UTDF
 
 =head1 SYNOPSIS
 
  use lib qw{ inc };
- use Astro::UTDF::Test;
+ use My::Module::Test;
  plan( 'no_plan' );
  require_ok( 'Astro::UTDF' );
  round_trip( router => 'ZZ' );
