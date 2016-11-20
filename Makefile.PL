@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use 5.006;
+use 5.006002;
 
 use lib qw{ inc };
 
