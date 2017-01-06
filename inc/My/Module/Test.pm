@@ -3,9 +3,8 @@ package My::Module::Test;
 use strict;
 use warnings;
 
-use base qw{ Exporter };
-
 use Carp;
+use Exporter qw{ import };
 use Test::More 0.88;
 
 my @export = qw{
