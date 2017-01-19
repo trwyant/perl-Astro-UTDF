@@ -26,7 +26,9 @@ my %args = (
 $mmv >= 6.31 and $args{LICENSE} = 'perl';
 
 $mmv >= 6.4501
-    and $args{META_MERGE} = $meta->meta_merge();
+    and $args{META_MERGE} = $meta->meta_merge(
+	$meta->provides(),
+    );
 
 $mmv >= 6.4701 and $args{MIN_PERL_VERSION} = $meta->requires_perl();
 
