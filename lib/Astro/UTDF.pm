@@ -14,6 +14,9 @@ use constant PI => atan2( 0, -1 );
 use constant TWO_PI => 2 * PI;
 use constant SPEED_OF_LIGHT => 299792.458;	# Km/sec, per U.S. NIST
 
+use constant ARRAY_REF	=> ref [];
+use constant CODE_REF	=> ref sub {};
+
 our $VERSION = '0.006';
 
 sub new {
@@ -181,9 +184,9 @@ sub data_interval {
 	    or return $self->$method( @args );
 	my $type = ref $dcdr
 	    or return sprintf $dcdr, $self->$method( @args );
-	'ARRAY' eq $type
+	ARRAY_REF eq $type
 	    and return $dcdr->[ $self->$method( @args ) ];
-	'CODE' eq $type
+	CODE_REF eq $type
 	    and return $dcdr->( $self, $method, @args );
 	confess "Programming error -- decoder for $method is $type";
     }
