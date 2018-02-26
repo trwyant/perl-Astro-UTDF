@@ -17,7 +17,7 @@ use constant SPEED_OF_LIGHT => 299792.458;	# Km/sec, per U.S. NIST
 use constant ARRAY_REF	=> ref [];
 use constant CODE_REF	=> ref sub {};
 
-our $VERSION = '0.006_01';
+our $VERSION = '0.007';
 
 sub new {
     my $class = shift;
