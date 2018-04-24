@@ -1,5 +1,7 @@
 package Astro::UTDF;
 
+use 5.006002;
+
 use strict;
 use warnings;
 
