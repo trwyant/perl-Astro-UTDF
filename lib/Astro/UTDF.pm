@@ -985,7 +985,7 @@ frequency band to a number from 0 to 15; this number comes from the low
 4 bits of the argument.
 
 The frequency band is found in the high nybble of the
-L</frequency_code_and_transmission_type>, and the encoding is documented
+L</frequency_band_and_transmission_type>, and the encoding is documented
 there.
 
 =head2 frequency_band_and_transmission_type
@@ -1616,7 +1616,7 @@ transmission type to a number from 0 to 15; this number comes from the low
 4 bits of the argument.
 
 The transmission type is found in the low nybble of the
-L</frequency_code_and_transmission_type>, and the encoding is documented
+L</frequency_band_and_transmission_type>, and the encoding is documented
 there.
 
 =head2 transmit_antenna_padid
