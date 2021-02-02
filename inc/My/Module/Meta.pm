@@ -19,6 +19,7 @@ sub new {
 
 sub build_requires {
     return +{
+	lib		=> 0,
 	'Test::More'	=> 0.88,	# Because of done_testing().
     };
 }
@@ -74,6 +75,8 @@ sub requires {
 	'POSIX'		=> 0,
 	'Scalar::Util'	=> 0,
 	'Time::Local'	=> 0,
+	bytes		=> 0,
+	constant	=> 0,
 	strict		=> 0,
 	warnings	=> 0,
 	@extra,
