@@ -13,7 +13,6 @@ eval {
 } or plan skip_all => 'Test::Prereq::Meta not available';
 
 Test::Prereq::Meta->new(
-    accept	=> [ qw{ My::Module::Test } ],
 )->all_prereq_ok();
 
 done_testing;
