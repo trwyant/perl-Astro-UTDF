@@ -1761,8 +1761,9 @@ This information comes from byte 6 of the record.
 =head1 SUPPORT
 
 Support is by the author. Please file bug reports at
-L<https://github.com/trwyant/perl-Astro-UTDF/issues>, or in electronic
-mail to the author.
+L<https://rt.cpan.org/Public/Dist/Display.html?Name=Astro-UTDF>,
+L<https://github.com/trwyant/perl-Astro-UTDF/issues>, or in
+electronic mail to the author.
 
 =head1 ACKNOWLEDGMENT
 
