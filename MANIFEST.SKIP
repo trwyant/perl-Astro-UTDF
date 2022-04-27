@@ -21,7 +21,6 @@ CVS/
 \.git(?:ignore$|/)
 \.svn/
 \.swp$
-^.travis.yml
 ^Standalone.PL$
 ^t/doppler\.utdf$
 ^t/real_data\.t$
