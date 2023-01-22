@@ -7,6 +7,7 @@
 ^cover_db/
 CVS/
 ^foo
+^.github/
 ^html/
 ^inc/Astro/UTDF/Reference\.pm$
 ^Makefile$
