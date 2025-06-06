@@ -1,5 +1,6 @@
 Build.PL
 Changes
+CONTRIBUTING
 eg/query_utdf
 eg/README
 inc/My/Module/Build.pm
@@ -13,6 +14,7 @@ MANIFEST
 META.json
 META.yml
 README
+SECURITY
 t/basic.t
 t/data.utd
 t/utdf.t
