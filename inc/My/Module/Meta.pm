@@ -66,8 +66,7 @@ sub meta_merge {
 	dynamic_config	=> 1,
 	resources	=> {
 	    bugtracker	=> {
-		web	=> 'https://rt.cpan.org/Public/Dist/Display.html?Name=Astro-UTDF',
-		# web	=> 'https://github.com/trwyant/perl-Astro-UTDF/issues',
+		web	=> 'https://github.com/trwyant/perl-Astro-UTDF/issues',
 		mailto  => 'harryfmudd@comcast.net',
 	    },
 	    license	=> 'http://dev.perl.org/licenses/',
@@ -332,8 +331,7 @@ information makes it into F<META.yml>.
 =head1 SUPPORT
 
 Support is by the author. Please file bug reports at
-L<https://rt.cpan.org/Public/Dist/Display.html?Name=Astro-UTDF>,
-L<https://github.com/trwyant/perl-Astro-UTDF/issues>, or in
+L<https://github.com/trwyant/perl-Astro-UTDF/issues> or in
 electronic mail to the author.
 
 =head1 AUTHOR
