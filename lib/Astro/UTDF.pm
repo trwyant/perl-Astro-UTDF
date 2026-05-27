@@ -1758,6 +1758,11 @@ the year the data were taken.
 
 This information comes from byte 6 of the record.
 
+=head1 SEE ALSO
+
+Haisam Ido's Python version, C<utdfpy>, at
+L<https://pypi.org/project/utdfpy/0.1.3/>.
+
 =head1 SUPPORT
 
 Support is by the author. Please file bug reports at
